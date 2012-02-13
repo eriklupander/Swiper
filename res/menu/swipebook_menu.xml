@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/toggle_reflection"
+          android:icon="@drawable/icon"
+          android:title="Toggle reflection" />
+    <item android:id="@+id/toggle_background"
+          android:icon="@drawable/icon"
+          android:title="Toggle background" />
+    <item android:id="@+id/toggle_pulse"
+          android:icon="@drawable/icon"
+          android:title="Toggle pulse" />
+    <item android:id="@+id/inc_refl"
+          android:icon="@drawable/icon"
+          android:title="Increase reflection" />
+    <item android:id="@+id/dec_refl"
+          android:icon="@drawable/icon"
+          android:title="Decrease reflection" />
+    <item android:id="@+id/rotate"
+          android:icon="@drawable/icon"
+          android:title="Rotate 360" />
+</menu>
