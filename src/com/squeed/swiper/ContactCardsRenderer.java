@@ -161,10 +161,8 @@ public class ContactCardsRenderer implements GLSurfaceView.Renderer{
 		 // FPS counter related.
 		 private int frames = 0;
 		 private long startTime = 0L;
+
 		 
-		/* (non-Javadoc)
-		 * @see nu.epsilon.swipebook.IContactCardRenderer#onDrawFrame(javax.microedition.khronos.opengles.GL10)
-		 */
 		public void onDrawFrame(GL10 gl) {
 			if(time > Integer.MAX_VALUE - 20) {
 				time = 0;				
@@ -199,8 +197,6 @@ public class ContactCardsRenderer implements GLSurfaceView.Renderer{
 		    if(renderBg) {		    	
 		    	renderBackground();
 		    }
-		    
-		   
 			
 			renderSwipe();
 			if (inSelectionMode) {
@@ -211,28 +207,11 @@ public class ContactCardsRenderer implements GLSurfaceView.Renderer{
 	
 			frames++;
 			if(frames == 150) {
-				//float fps = 150.0f / ((System.currentTimeMillis() - startTime)/1000.0f);
-				//Log.i("FPS", "150 frames took : " + (System.currentTimeMillis() - startTime) + " ms to render, which means " + fps + " fps");
+				float fps = 150.0f / ((System.currentTimeMillis() - startTime)/1000.0f);
+				Log.i("FPS", "150 frames took : " + (System.currentTimeMillis() - startTime) + " ms to render, which means " + fps + " fps");
 				frames = 0;
 			}
-			
-//			if(trySelectNextFrame) {
-//				GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, mFramebuffer);
-//				GLES20.glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-//			    GLES20.glClear( GLES20.GL_DEPTH_BUFFER_BIT | GLES20.GL_COLOR_BUFFER_BIT);
-//				renderSolid = true;
-//				renderSwipe();
-//				renderSolid = false;
-//				ByteBuffer pixelBuffer = ByteBuffer.allocateDirect(1 * 1 * 4).order(ByteOrder.nativeOrder());
-//			    GLES20.glReadPixels(gWinX, Y_SIZE-gWinY, 1, 1, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, pixelBuffer);
-//			    Log.i(TAG, "Data:" + pixelBuffer.get(0) + "," + pixelBuffer.get(1) + "," + pixelBuffer.get(2) +"," + pixelBuffer.get(3));
-//				
-//			    GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
-//				trySelectNextFrame = false;
-//			}
 
-//			mProjector.getCurrentModelView(gl);
-//			mProjector.getCurrentProjection(gl);
 		}
 
 		private void renderBackground() {
@@ -280,17 +259,11 @@ public class ContactCardsRenderer implements GLSurfaceView.Renderer{
 					radialMenu.isVisible = false;
 				}				
 			}
-			winCoords = get2DCoordsFrom3D(cc.x, cc.y, cc.z);
-			cc.winX = (int) winCoords[0];
-			cc.winY = (int) (Y_SIZE-winCoords[1]);
 			
-			//GLES20.glUseProgram(Shaders.defaultShader.program);
-			//cc.draw(textureIDs[cc.textureIndex]);
 			renderer.render(cc, Shaders.defaultShader);
 			if(renderReflection) {
 				GLES20.glUseProgram(Shaders.reflectionShader.program);
 				renderer.render(cc, Shaders.reflectionShader);
-				//cc.drawAsReflection(textureIDs[cc.textureId]);
 			}
 			
 			if(radialMenu.isVisible) {
@@ -352,7 +325,8 @@ public class ContactCardsRenderer implements GLSurfaceView.Renderer{
 
 			// Get the base "scroll" position. Note the interpolation.
 			calcXTranslation();
-		
+			
+					
 			for (int i = 0; i < contactCards.length; i++) {
 				if( contactCards[i] == null) {
 					//Log.i("TAG", "contact card of index " + i + " is null????!?!?");
@@ -363,17 +337,15 @@ public class ContactCardsRenderer implements GLSurfaceView.Renderer{
 				if (cc.isSelected)
 					continue;
 
-				cc.x -= xTranslate;
-				//Log.i("TAG", "Z_DEPTH: " + Z_DEPTH);
+				cc.x -= xTranslate;				
 				cc.z = Z_DEPTH - (Math.abs(cc.x) / 2);
 				cc.yRot = cc.x * 9.0f;
 				
+				//Log.i("TAG", "Z_DEPTH: " + Z_DEPTH);
 
 				
 				// Get corresponding 2D x/y coords
 				winCoords = get2DCoordsFrom3D(cc.x, cc.y, cc.z);
-				cc.winX = (int) (X_SIZE-winCoords[0]);
-				cc.winY = (int) (winCoords[1]); 
 				
 				// The most crude occlusion culling ever...
 				if(cc.x < -5 || cc.x > 5) {					
@@ -381,6 +353,7 @@ public class ContactCardsRenderer implements GLSurfaceView.Renderer{
 				}
 					
 				if(renderSolid) {
+					
 					renderer.renderSolidColor(cc, Shaders.colorShader,  Shaders.colorShader.colorHandle, cc.colorIndex);
 					//Log.i(TAG, "Rendered solid pass!");
 					continue;
@@ -410,8 +383,7 @@ public class ContactCardsRenderer implements GLSurfaceView.Renderer{
 			}
 			
 			GLES20.glActiveTexture(GL10.GL_TEXTURE0);
-			GLES20.glBindTexture(GL10.GL_TEXTURE_2D,
-					textureIDs[contactCards[i].textureId]);
+			GLES20.glBindTexture(GL10.GL_TEXTURE_2D, contactCards[i].textureId);
 		}
 
 		private static int X_SIZE, Y_SIZE;
@@ -432,48 +404,39 @@ public class ContactCardsRenderer implements GLSurfaceView.Renderer{
 		private static float[] result = new float[4];
 		private static float[] result3 = new float[4];
 		
-		private float[] get3DCoordsFrom2D(float x, float y, float z) {		
+		private float[] get3DCoordsFrom2D(float x, float y, float z) {
 			Log.i(TAG, "3D W:" + x + " H: " + y);
 			
 			MathHelper.gluUnProject(x, y, z, mMMatrix, 0, mProjMatrix, 0, viewport3, 0, result, 0);
 			Log.i(TAG, "3D " + MatrixLogger.vector4ToString(result));
 			return result;			
-			//GLU.gluUnProject(x, y, z, mProjector.mGrabber.mModelView, 0,  mProjector.mGrabber.mProjection, 0, viewport3, 0, result3, 0);
-			//return result;
-//			result3[0] /= result3[3];
-//			result3[1] /= result3[3];
-//			result3[2] /= result3[3];
-//			//xyzw[3] /= xyzw[3];
-//			result[3] = 1;
-//			Log.i(TAG, "3D " + MatrixLogger.vector4ToString(result3));
-//			return result3;
 		}
 		
 		
 
-		/* (non-Javadoc)
-		 * @see nu.epsilon.swipebook.IContactCardRenderer#onSurfaceChanged(javax.microedition.khronos.opengles.GL10, int, int)
-		 */
 		public void onSurfaceChanged(GL10 gl, int width, int height) {
 			Log.i("onSurfaceChanged","width:" + width + ",height:" + height);
+			setViewPort(width, height);
+			X_SIZE = width;
+		    Y_SIZE = height;
+		    mTargetTexture = FrameBufferFactory.createTargetTexture(gl, X_SIZE/8, Y_SIZE/8);
+			mFramebuffer = FrameBufferFactory.createFrameBuffer(gl, X_SIZE/8, Y_SIZE/8, mTargetTexture);
+		}
+		
+		private void setViewPort(int width, int height) {
+
 			viewport3 = new int[]{0, 0, width, height}; 
 			GLES20.glViewport(0, 0, width, height);
 		    float ratio = (float) width / height;
 		    Matrix.frustumM(mProjMatrix, 0, -ratio, ratio, -1, 1, fNear, fFar);
-		    Log.i(TAG, MatrixLogger.matrix44ToString(mProjMatrix));
-		    X_SIZE = width;
-		    Y_SIZE = height;
+		    //Log.i(TAG, MatrixLogger.matrix44ToString(mProjMatrix));		    
 		}
 		
 		
 		
 
-		/* (non-Javadoc)
-		 * @see nu.epsilon.swipebook.IContactCardRenderer#onSurfaceCreated(javax.microedition.khronos.opengles.GL10, javax.microedition.khronos.egl.EGLConfig)
-		 */
 		public void onSurfaceCreated(GL10 gl, EGLConfig config) {
-			mTargetTexture = FrameBufferFactory.createTargetTexture(gl, mFramebufferWidth, mFramebufferHeight);
-			mFramebuffer = FrameBufferFactory.createFrameBuffer(gl, mFramebufferWidth, mFramebufferHeight, mTargetTexture);
+			
 			
 			currentTextureIndex = 0;
 			/*
@@ -481,7 +444,7 @@ public class ContactCardsRenderer implements GLSurfaceView.Renderer{
 			 * reduce performance. One might want to tweak that especially on
 			 * software renderer.
 			 */
-			GLES20.glDisable(GL10.GL_DITHER);
+			//GLES20.glDisable(GL10.GL_DITHER);
 			
 			Shaders.initDefaultShader();
 			Shaders.initColorShader();
@@ -517,68 +480,15 @@ public class ContactCardsRenderer implements GLSurfaceView.Renderer{
 			bgQuad = TextureLoader.loadBackgroundTexture(gl, mContext);
 			
 			GLES20.glGenTextures(contactCards.length, textureIDs, 0);
-			for (int a = 0; a < contactCards.length; a++)
-				setupCardTexture(gl, contactCards[a]);
-
-		}
-
-
-		
-		
-		private void setupCardTexture(GL10 gl, ContactCard contactCard) {
-			if(contactCard == null)
-				return;
-			Log.i("CNT", "Creating texture for " + contactCard.name);
-
-			GLES20.glBindTexture(GL_TEXTURE_2D, textureIDs[currentTextureIndex]);
-
-			GLES20.glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-			GLES20.glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-			GLES20.glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-			GLES20.glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-		
-			GLES20.glBlendFunc(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
-			Bitmap bm = null;
-			if (contactCard.picture != null) {
-				try {
-					bm = contactCard.picture.copy(contactCard.picture.getConfig(),
-							true);
-					bm = TextureLoader.rescaleBitmapToPOT(bm, 128, 128);
-				} catch (Exception e) {
-					return;
-				}
-				Log.i("TextureLoader", "Contact picture config is: " + contactCard.picture.getConfig().toString());
-				bm = TextureLoader.drawContactCardBitmap2(bm, contactCard.name, false);
-				
-				// Note, we use the bitmap from the contactCard one more time when we create
-				// the texture for "selected" mode.
-				contactCard.picture.recycle();
-			} else {
-				InputStream is = mContext.getResources().openRawResource(
-						R.drawable.ic_launcher_android);
-				Bitmap tempBitmap = null;
-				try {
-					tempBitmap = BitmapFactory.decodeStream(is);
-					Log.i("TextureLoader", "Default icon config is: " + tempBitmap.getConfig().toString());
-					
-					bm = tempBitmap.copy(tempBitmap.getConfig(), true);	
-					tempBitmap.recycle();
-					TextureLoader.drawContactCardBitmap(bm, contactCard.name, true);
-				} finally {
-					try {
-						is.close();
-					} catch (IOException e) {}
-				}
+			for (int a = 0; a < contactCards.length; a++) {
+				currentTextureIndex = TextureLoader.setupCardTexture(gl, mContext, contactCards[a], textureIDs, currentTextureIndex);
 			}
-			
-			GLUtils.texImage2D(GL_TEXTURE_2D, 0, bm, 0);
-
-			bm.recycle();
-			contactCard.textureId = textureIDs[currentTextureIndex];
-			currentTextureIndex++;
 		}
+
+
+		
+		
+		
 
 		public static int mTargetTexture;
 		private int mFramebuffer;
@@ -598,196 +508,81 @@ public class ContactCardsRenderer implements GLSurfaceView.Renderer{
 
 	    GLES20.glClear( GLES20.GL_DEPTH_BUFFER_BIT | GLES20.GL_COLOR_BUFFER_BIT);
 		renderSolid = true;
+		setViewPort(X_SIZE/8, Y_SIZE/8);
 		renderSwipe();
+		
 		renderSolid = false;
 		ByteBuffer pixelBuffer = ByteBuffer.allocateDirect(1 * 1 * 4).order(ByteOrder.nativeOrder());
-	    GLES20.glReadPixels(winX, Y_SIZE-winY, 1, 1, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, pixelBuffer);
-	    Log.i(TAG, "Data:" + pixelBuffer.get(0) + "," + pixelBuffer.get(1) + "," + pixelBuffer.get(2) +"," + pixelBuffer.get(3));
-		
+	    GLES20.glReadPixels(winX/8, Y_SIZE/8-winY/8, 1, 1, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, pixelBuffer);
+	    setViewPort(X_SIZE, Y_SIZE);
 	    GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
-	    // END WORKING BLOCK
 	    
-		//float[] viewRay = MathHelper.getViewRay(winX, winY, X_SIZE, Y_SIZE, new float[]{0.0f, 0.0f, 6.0f}, mVMatrix, mProjMatrix);
+	    
+	    Log.i(TAG, "Data:" + pixelBuffer.get(0) + "," + pixelBuffer.get(1) + "," + pixelBuffer.get(2) +"," + pixelBuffer.get(3));
+	    int index = (int) pixelBuffer.get(0);
+	    if(index > 0) {
+	    	selectedIndex = index - 1;
+	    	Log.i(TAG, "Selected contactCards: " + contactCards[selectedIndex].name);
+	    } else {
+	    	return -1;
+	    }
+	    
+	    
+	    
+		// If showing radialmenu, test selection for those first.
 		
-		// New code. render a full frame to the back buffer. Do color checking.
-		 //GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, mFramebuffer);
-//		 renderSolid = true;
-//		 GLES20.glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-//		 GLES20.glClear( GLES20.GL_DEPTH_BUFFER_BIT | GLES20.GL_COLOR_BUFFER_BIT);
-//		 //renderSwipe();
-//		 try {
-//			Thread.sleep(500L);
-//		} catch (InterruptedException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-//		 renderSolid = false;
-		 
-//		byte b[] = new byte[4];
-//		ByteBuffer pixels = ByteBuffer.allocateDirect(4);
-//		pixels.order(ByteOrder.nativeOrder());
-// 
-//		 GLES20.glReadPixels(winX, Y_SIZE - winY, 1, 1, GLES20.GL_RGBA,
-//				 GLES20.GL_UNSIGNED_BYTE, pixels);
-//		 Log.i(TAG, "Data::: " + pixels.get(0)); // + " " + fb.getFloat(2) + " " + fb.getFloat(3));
-		 //GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
-		return -1;
-//		float fDistance = 6.0f;
-//		float winZ = (1.0f/fNear-1.0f/fDistance)/(1.0f/fNear-1.0f/fFar);
-//		float[] xyz = get3DCoordsFrom2D(winX, winY, -0.99f);
-//		//float[] xyz2 = get3DCoordsFrom2D(winX, winY, 20);
-//		Log.i(TAG, "3D coordinate: " + xyz[0] + "," + xyz[1] + "," + xyz[2]);
-//		//Log.i(TAG, "3D/2 coordinate: " + xyz2[0] + "," + xyz2[1] + "," + xyz2[2]);
-//		ArrayList<Intersection> intersects = new ArrayList<Intersection>();
-//		
-//		// If showing radialmenu, test selection for those first.
-//		
-//		if(radialMenu.isVisible) {
-//			if(radialMenu.inTransition()) {
-//				return -1;
-//			}
-//			 int selectedIconIndex = radialMenu.testSelect(winX, winY);
-//			 if(selectedIconIndex > -1) {
-//				 if(selectedIconIndex == 0 || selectedIconIndex == 1) {
-//					 radialMenu.execute(selectedIconIndex, contactCards[selectedIndex].id);
-//				 }				
-//				 return 1;
-//			 }
-//		 }
-//		
-//		// If we're currently in a transition, break selection.
-//		
-//		
-//		for (int i = 0; i < contactCards.length; i++) {
-//			
-//			
-//			
-//			ContactCard cc = contactCards[i];
-//			if(cc.name.startsWith("Alexander B")) {
-//				Log.i(TAG, "3D " + cc.x + "," + cc.y + "," + cc.z);
-//			}
-////			Line.intersectPlane(intersects, new Float3(xyz), new Float3(xyz2), new Float3(cc.x-1.0f, cc.y-1.0f, cc.z), new Float3(cc.x+1.0f, cc.y-1.0f, cc.z), new Float3(cc.x+1.0f, cc.y+1.0f, cc.z));
-////			Log.i(TAG, "Intersects: " + intersects.size());
-//			if(cc == null) {
-//				continue;
-//			}
-//			if(cc.winX > X_SIZE || cc.winX < 0 || cc.currentTransition != null && cc.currentTransition.timeOfStart != 0)
-//				continue;
-//			if (checkSelection(winX, winY, cc)) {
-//				Log.i("Selection", "Selected: " + cc.name + " at winX: " + cc.winX + ", winY: "+ cc.winY);
-//				
-//				// if already selected...unselect..
-//				if(cc.isSelected) {					
-//					isZoomToBack = true;		
-//					cc.popTransition();
-//					radialMenu.toggleInOut();
-//				} else {
-//					if(selectedIndex != -1) {
-//						if(i != selectedIndex)
-//							continue;
-//					}
-//					cc.isSelected = true;
-//					selectedIndex = i;
-//					inSelectionMode = true;
-//					
-//					isZoomToFront = true;
-//					cc.pushTransitionOntoQueueAndStart(
-//							new Transition(
-//									new float[]{cc.x,cc.y,cc.z}, 
-//									new float[]{0.0f, 0.0f, Z_DEPTH}, 
-//									300, acdcIntp, cc.yRot, 0.0f)
-//					);
-//					
-//					radialMenu.setStartStop(cc.x, cc.y, cc.z);
-//					radialMenu.toggleInOut();
-//					radialMenu.isVisible = true;
-//					
-//				}
-//			} else {
-//				Log.i("Selection", "Not selected: " + cc.name + " at winX: " + cc.winX + ", winY: "+ cc.winY);
-//			}
-//		}
-//		return -1;
-	}
-
-	
-	
-	
-	/* (non-Javadoc)
-	 * @see nu.epsilon.swipebook.IContactCardRenderer#setHighlightIcon(int, int)
-	 */
-	public void setHighlightIcon(int winX, int winY) {
 		if(radialMenu.isVisible) {
-			
-			radialMenu.resetHighlightIcon();
-			
-			int selectedIconIndex = radialMenu.testSelect(winX, winY);
-			if(selectedIconIndex != -1) {
-				radialMenu.setHighlightIcon(selectedIconIndex, true);
+			if(radialMenu.inTransition()) {
+				return -1;
 			}
+			 int selectedIconIndex = -1; //radialMenu.testSelect(winX, winY);
+			 if(selectedIconIndex > -1) {
+				 if(selectedIconIndex == 0 || selectedIconIndex == 1) {
+					 radialMenu.execute(selectedIconIndex, contactCards[selectedIndex].id);
+				 }				
+				 return 1;
+			 }
+		 }
+		
+		
+		if(contactCards[selectedIndex].isSelected) {					
+			isZoomToBack = true;		
+			contactCards[selectedIndex].popTransition();
+			radialMenu.toggleInOut();
+		} else {
+			
+			inSelectionMode = true;
+	    	contactCards[selectedIndex].isSelected = true;
+			isZoomToFront = true;
+			contactCards[selectedIndex].pushTransitionOntoQueueAndStart(
+					new Transition(
+							new float[]{contactCards[selectedIndex].x, contactCards[selectedIndex].y, contactCards[selectedIndex].z}, 
+							new float[]{0.0f, 0.0f, Z_DEPTH}, 
+							300, acdcIntp, contactCards[selectedIndex].yRot, 0.0f)
+			);
+			
+			radialMenu.setStartStop(contactCards[selectedIndex].x, contactCards[selectedIndex].y, contactCards[selectedIndex].z);
+			radialMenu.toggleInOut();
+			radialMenu.isVisible = true;
+			
 		}
+			
+		
+		return selectedIndex;
 	}
-	
-	
 
     
+	
+
+
 	private boolean renderReflection = false;
 	private boolean renderBg = false;
 	private boolean isRotating = false;
 	private float currentRotation = 0.0f;
 
 
-
-	/* (non-Javadoc)
-	 * @see nu.epsilon.swipebook.IContactCardRenderer#testSelectLongClick(int, int)
-	 */
 	public void testSelectLongClick(int winX, int winY) {
-		for (int i = 0; i < contactCards.length; i++) {
-			ContactCard cc = contactCards[i];
-			if(cc.winX > X_SIZE || cc.winX < 0 || cc.currentTransition != null && cc.currentTransition.timeOfStart != 0)
-				continue;
-			if (checkSelection(winX, winY, cc)) {
-				
-				// UNSELECT
-				if(cc.isSelected) {					
-					isZoomToBack = true;					
-				} 
-				
-				// SELECT
-				else {
-					if(selectedIndex != -1) {
-						if(i != selectedIndex)
-							continue;
-					}					
-					spinToFront(i, cc);
-					break;
-				}
-			}
-		}			
-	}
-
-
-	private boolean checkSelection(int winX, int winY, ContactCard cc) {
 		
-		// TODO, calculate window coordinates for all 4 corners and use those for selection.
-		// or at least calculate the bounding box (default:40) size dynamically.
-		// 1. Get the depth (z diff) from the camera to the card: (6.0 z is the depth of our static camera)
-//		float zDiff = 6.0f - cc.z;
-//		float angle = (float) Math.sin(zDiff/1.0f );
-//		float diff = zDiff * angle;
-//		Log.i("checkSelection", "z diff: " + zDiff + " angle: " + angle + " diff:" + diff);
-//		float diff = -1.0f/-cc.z;
-//		Log.i("checkSelection", "z diff: " + diff + " cc.z is: " + cc.z);
-//		float[] result = new float[3];
-//		
-//		// This SHOULD give us the upper-left corner in window coordinates... 
-//		GLU.gluProject(cc.x+diff, cc.y, cc.z, mMMatrix, 0,
-//				mProjMatrix, 0, viewport3, 0, result, 0);
-//		
-//		Log.i("checkSelectionX","Result X: " + result[0] + " Y: " + result[1] + " Z: " + result[2]);
-		
-		return winX > cc.winX - 40 && winX < cc.winX + 40
-				&& winY > cc.winY - 40 && winY < cc.winY + 40;
 	}
 
 
@@ -804,35 +599,17 @@ public class ContactCardsRenderer implements GLSurfaceView.Renderer{
 						300, acdcIntp, cc.yRot, 180.0f
 				)
 		);
-		
-		// 2. Create a bitmap using Canvas and Paint.
-//		CreateDetailBitmap t = new CreateDetailBitmap(cc);
-//		t.start();
 	}
 	
 	
 	
-//	class CreateDetailBitmap extends Thread {
-//		
-//		private ContactCard cc;	
-//		
-//		CreateDetailBitmap(ContactCard cc) {
-//			this.cc = cc;	
-//		}
-//		
-//		public void run() {
-//			// 1. Load contact details, render them to a bitmap, set texture id. on cc somehow.
-//			String[] personDetails = contactLoader.loadPersonDetails(cc.id);			
-//			
-//			// 2. Create a bitmap using Canvas and Paint.
-//			cc.detailBitmap = TextureLoader.createPersonDetailTexture(personDetails);
-//		}
-//	}
+
 
 	public static float Z_DEPTH = 3.0f;
 
-	/* (non-Javadoc)
-	 * @see nu.epsilon.swipebook.IContactCardRenderer#pinchZoom(float)
+	/**
+	 * The pinch-zoom actually only moves the z-index a bit back or forth.
+	 * @param f
 	 */
 	public void pinchZoom(float f) {
 		Log.i("CCR", "ENTER - pinchZoom with value " + f);
@@ -841,7 +618,10 @@ public class ContactCardsRenderer implements GLSurfaceView.Renderer{
 		}
 	}
 
-
+	/**
+	 * Toggle state flags depending on menu input.
+	 * @param identifier
+	 */
 	public void toggle(int identifier) {
 		switch(identifier) {
 		case SwipeActivity.REFLECTION:

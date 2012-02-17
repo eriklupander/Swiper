@@ -7,12 +7,16 @@ import android.opengl.Matrix;
 import android.util.Log;
 
 import com.squeed.swiper.ContactCardsRenderer;
-import com.squeed.swiper.helper.MxStack;
-import com.squeed.swiper.shader.PulseReflectionShader;
+import com.squeed.swiper.helper.MatrixStack;
 import com.squeed.swiper.shader.Shader;
-import com.squeed.swiper.shapes.ContactCard;
 import com.squeed.swiper.shapes.MutableShape;
 
+/**
+ * Generic renderer. Implements a few different "render" methods that
+ * each take a {@link MutableShape}, a Shader and some parameter variants.
+ * 
+ * @author Erik
+ */
 public class ObjectRenderer {
 	
 	private static final int FLOAT_SIZE_BYTES = 4;
@@ -61,7 +65,7 @@ public class ObjectRenderer {
 	
 	public void renderSolidColor(MutableShape shape, Shader shader, int attrib, float value) {
 		GLES20.glUseProgram(shader.program);
-		GLES20.glUniform1f(attrib, value);
+		GLES20.glUniform1f(attrib, value/255.0f);
 		renderSolidColor(shape.x, shape.y, shape.z, 0, shape.yRot, 0, shape.verticesBuffer, shader);
 	}
 
@@ -101,8 +105,8 @@ public class ObjectRenderer {
 
         GLES20.glEnableVertexAttribArray(shader.mTextureHandle);
         
-        MxStack.push(ContactCardsRenderer.mVMatrix);
-        MxStack.push2(ContactCardsRenderer.mMMatrix);
+        MatrixStack.push(ContactCardsRenderer.mVMatrix);
+        MatrixStack.push2(ContactCardsRenderer.mMMatrix);
         
         Matrix.translateM(ContactCardsRenderer.mVMatrix, 0, x, y, z);    
         Matrix.setRotateM(ContactCardsRenderer.mMMatrix, 0, yRot, 0, 1.0f, 0);
@@ -121,26 +125,25 @@ public class ObjectRenderer {
         
 
         // Reverse translations... urgh, this should probably be performed using some fancy inverse transform...
-        MxStack.pop2(ContactCardsRenderer.mMMatrix);
-        MxStack.pop(ContactCardsRenderer.mVMatrix);
+        MatrixStack.pop2(ContactCardsRenderer.mMMatrix);
+        MatrixStack.pop(ContactCardsRenderer.mVMatrix);
 	}
 	
 	
 	
-	public void renderSolidColor(float x, float y, float z, float xRot, float yRot, float zRot, FloatBuffer verticies, Shader shader) {
+	private void renderSolidColor(float x, float y, float z, float xRot, float yRot, float zRot, FloatBuffer verticies, Shader shader) {
 		
        
         verticies.position(TRIANGLE_VERTICES_DATA_POS_OFFSET);
         GLES20.glVertexAttribPointer(shader.mPositionHandle, 3, GLES20.GL_FLOAT, false,
                 TRIANGLE_VERTICES_DATA_STRIDE_BYTES, verticies);
 
-        verticies.position(TRIANGLE_VERTICES_DATA_UV_OFFSET);
-        GLES20.glEnableVertexAttribArray(shader.mPositionHandle);
-
+        // Removed the UV stuff since that's not needed when rendering to a solid color.
         
-        MxStack.push(ContactCardsRenderer.mVMatrix);
-        MxStack.push2(ContactCardsRenderer.mMMatrix);
+        MatrixStack.push(ContactCardsRenderer.mVMatrix);
+        MatrixStack.push2(ContactCardsRenderer.mMMatrix);
         
+        // Translate, then rotate, as always.
         Matrix.translateM(ContactCardsRenderer.mVMatrix, 0, x, y, z);    
         Matrix.setRotateM(ContactCardsRenderer.mMMatrix, 0, yRot, 0, 1.0f, 0);
                 
@@ -153,8 +156,9 @@ public class ObjectRenderer {
         
 
         // Reverse translations... urgh, this should probably be performed using some fancy inverse transform...
-        MxStack.pop2(ContactCardsRenderer.mMMatrix);
-        MxStack.pop(ContactCardsRenderer.mVMatrix);
+        // Im quite fond of the old-school OpenGL glPushMatrix() and glPopMatrix() I guess.
+        MatrixStack.pop2(ContactCardsRenderer.mMMatrix);
+        MatrixStack.pop(ContactCardsRenderer.mVMatrix);
 	}
 	
 	

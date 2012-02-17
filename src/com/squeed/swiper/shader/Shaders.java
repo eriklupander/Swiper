@@ -21,31 +21,6 @@ public class Shaders {
 	public static PulseReflectionShader pulseReflectionShader;	
 	public static ColorShader colorShader;
 	
-	/** Start of handles to vertix/pixel shader programs and 'variables' **/
-	//public static int mProgram;
-   // public static int mProgramReflection;
-   // public static int mProgramPulse;
-    //public static int mProgramPulseReflection;
-
-    //public static  int muMVPMatrixHandle;
-    //public static  int maPositionHandle;
-    //public static  int maTextureHandle;
-    
-//    public static  int muMVPMatrixHandleReflection;
-//    public static  int maPositionHandleReflection;
-//    public static  int maTextureHandleReflection;
-//    public static  int maReflectionAmount;
-	
-//    public static  int muMVPMatrixHandlePulse;
-//    public static  int maPositionHandlePulse;
-//    public static  int maTextureHandlePulse;
-//    public static  int maTimeHandlePulse;
-    
-//    public static  int muMVPMatrixHandlePulseReflection;
-//    public static  int maPositionHandlePulseReflection;
-//    public static  int maTextureHandlePulseReflection;
-//    public static  int maTimeHandlePulseReflection;
-//    public static  int maReflectionPulseAmount;
 	
     /**
      * The standard vertex shader. This mimics the behaviour of the OpenGL ES 1.0 static vertex pipeline.
@@ -78,7 +53,7 @@ public class Shaders {
         "precision mediump float;\n" +   
         "uniform float color;\n" +
         "void main() {\n" +
-        "  gl_FragColor = vec4(color, color, color, 1.0);\n" +
+        "  gl_FragColor = vec4(color, 0.1, 0.1, 1.0);\n" +
         "}\n";
 	
 	

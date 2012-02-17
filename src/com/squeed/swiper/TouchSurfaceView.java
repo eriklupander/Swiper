@@ -44,7 +44,7 @@ public class TouchSurfaceView extends GLSurfaceView {
 
 	private void setInitialPositionsForCards(ContactCard[] contacts) {
 		
-		float colorIdx = 0.1f;
+		int colorIdx = 1;
 		
 		for (int i = 0; i < contacts.length; i++) {
 			if(contacts[i] != null) {
@@ -53,7 +53,7 @@ public class TouchSurfaceView extends GLSurfaceView {
 				contacts[i].z = -2.0f - (Math.abs(i * 2.5f) / 2);
 				contacts[i].yRot = 0.0f;
 				contacts[i].colorIndex = colorIdx;
-				colorIdx += 0.01f;
+				colorIdx += 1;
 			}
 		}
 	}
@@ -67,7 +67,7 @@ public class TouchSurfaceView extends GLSurfaceView {
 	
 	@Override
 	public boolean onTouchEvent(MotionEvent e) {
-
+		dumpEvent(e);
 		final float x = e.getX();
 		final float y = e.getY();
 		
@@ -107,26 +107,15 @@ public class TouchSurfaceView extends GLSurfaceView {
 	}
 	
 	private boolean handleTouchEventInSelectionMode(MotionEvent e, final float x, final float y) {
-		switch (e.getAction()) {
-			
-			
-		
+		switch (e.getAction()) {		
 			case MotionEvent.ACTION_DOWN:
-				queueEvent(new Runnable() {
-					public void run() {
-						mRenderer.setHighlightIcon((int)x, (int)y);
-					}
-				});
-				return true;
+				dumpEvent(e);
+				break;
 			case MotionEvent.ACTION_MOVE:
 				
-				handleActionMoveSelMode.x = (int)x;
-				handleActionMoveSelMode.y = (int)y;
-				queueEvent(handleActionMoveSelMode);
-				
-				try {	Thread.sleep(80);	} catch (InterruptedException e1) {}
-				return true;
+				break;
 			case MotionEvent.ACTION_UP:
+				dumpEvent(e);
 				queueEvent(new Runnable() {
 					public void run() {
 						mRenderer.testSelect((int)x, (int)y);
@@ -261,17 +250,7 @@ public class TouchSurfaceView extends GLSurfaceView {
 		}
 	}
 	
-	private HandleActionMoveInSelectionMode handleActionMoveSelMode = new HandleActionMoveInSelectionMode();
 	
-	class HandleActionMoveInSelectionMode implements Runnable {
-		
-		public int x;
-		public int y;
-		
-		public void run() {
-			mRenderer.setHighlightIcon(x, y);
-		}
-	}
 	
 	class LongClick extends Thread {
 		private int startClickIndex;

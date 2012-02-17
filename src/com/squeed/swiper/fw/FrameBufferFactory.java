@@ -4,6 +4,14 @@ import javax.microedition.khronos.opengles.GL10;
 
 import android.opengl.GLES20;
 
+/**
+ * Helper class for creating a FrameBuffer and a texture for the framebuffer.
+ * 
+ * More or less copied from the ApiDemos and then adapted to GLES20.
+ * 
+ * @author Erik
+ *
+ */
 public class FrameBufferFactory {
 
     public static int createFrameBuffer(GL10 gl, int width, int height, int targetTextureId) {

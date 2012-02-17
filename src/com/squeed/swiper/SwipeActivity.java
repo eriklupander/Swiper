@@ -134,8 +134,7 @@ public class SwipeActivity extends Activity {
 	
 	
 	public boolean onCreateOptionsMenu(Menu menu) {
-		Log.i("OPTIONS-MENU", "Create");
-	    MenuInflater inflater = getMenuInflater();
+		MenuInflater inflater = getMenuInflater();
 	    inflater.inflate(R.menu.swipebook_menu, menu);
 	    return true;
 	}

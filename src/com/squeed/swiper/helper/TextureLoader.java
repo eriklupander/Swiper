@@ -1,14 +1,18 @@
 package com.squeed.swiper.helper;
 
+import static android.opengl.GLES10.GL_CLAMP_TO_EDGE;
+import static android.opengl.GLES10.GL_LINEAR;
+import static android.opengl.GLES10.GL_NEAREST;
 import static android.opengl.GLES10.GL_TEXTURE_2D;
+import static android.opengl.GLES10.GL_TEXTURE_MAG_FILTER;
+import static android.opengl.GLES10.GL_TEXTURE_MIN_FILTER;
+import static android.opengl.GLES10.GL_TEXTURE_WRAP_S;
+import static android.opengl.GLES10.GL_TEXTURE_WRAP_T;
 
 import java.io.IOException;
 import java.io.InputStream;
 
 import javax.microedition.khronos.opengles.GL10;
-
-import com.squeed.swiper.R;
-import com.squeed.swiper.shapes.BgQuad;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -22,6 +26,12 @@ import android.graphics.PorterDuffXfermode;
 import android.graphics.RectF;
 import android.opengl.GLES20;
 import android.opengl.GLUtils;
+import android.util.Log;
+
+import com.squeed.swiper.ContactCardsRenderer;
+import com.squeed.swiper.R;
+import com.squeed.swiper.shapes.BgQuad;
+import com.squeed.swiper.shapes.ContactCard;
 
 /**
  * Creates texture images using input bitmap image + some non-fancy canvas drawing.
@@ -32,6 +42,62 @@ import android.opengl.GLUtils;
 public class TextureLoader {
 	
 	private static int bgTexture[] = new int[1];
+	
+	public static int setupCardTexture(GL10 gl, Context context, ContactCard contactCard, int[] textureIDs, int currentTextureIndex) {
+		if(contactCard == null)
+			return currentTextureIndex;
+		Log.i("CNT", "Creating texture for " + contactCard.name);
+
+		GLES20.glBindTexture(GL_TEXTURE_2D, ContactCardsRenderer.textureIDs[currentTextureIndex]);
+
+		GLES20.glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		GLES20.glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+		GLES20.glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		GLES20.glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+	
+		GLES20.glBlendFunc(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
+		Bitmap bm = null;
+		if (contactCard.picture != null) {
+			try {
+				bm = contactCard.picture.copy(contactCard.picture.getConfig(),
+						true);
+				bm = TextureLoader.rescaleBitmapToPOT(bm, 128, 128);
+			} catch (Exception e) {
+				return currentTextureIndex;
+			}
+			
+			Log.i("TextureLoader", "Contact picture config is: " + contactCard.picture.getConfig().toString());
+			bm = TextureLoader.drawContactCardBitmap2(bm, contactCard.name, false);
+			
+			// Note, we use the bitmap from the contactCard one more time when we create
+			// the texture for "selected" mode.
+			contactCard.picture.recycle();
+		} else {
+			InputStream is = context.getResources().openRawResource(
+					R.drawable.ic_launcher_android);
+			Bitmap tempBitmap = null;
+			try {
+				tempBitmap = BitmapFactory.decodeStream(is);
+				Log.i("TextureLoader", "Default icon config is: " + tempBitmap.getConfig().toString());
+				
+				bm = tempBitmap.copy(tempBitmap.getConfig(), true);	
+				tempBitmap.recycle();
+				TextureLoader.drawContactCardBitmap(bm, contactCard.name, true);
+			} finally {
+				try {
+					is.close();
+				} catch (IOException e) {}
+			}
+		}
+		
+		GLUtils.texImage2D(GL_TEXTURE_2D, 0, bm, 0);
+
+		bm.recycle();
+		contactCard.textureId = textureIDs[currentTextureIndex++];
+		return currentTextureIndex;
+	}
 	
 	public static BgQuad loadBackgroundTexture(GL10 gl, Context mContext) {
 

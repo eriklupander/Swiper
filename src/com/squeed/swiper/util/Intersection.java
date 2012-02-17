@@ -9,7 +9,7 @@ public class Intersection {
         this.t = t;
     }
 
-    public boolean IsInside(){
+    public boolean isInside(){
         return t > 0 && t < 1;
     }
 

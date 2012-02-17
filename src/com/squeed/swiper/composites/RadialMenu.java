@@ -35,7 +35,6 @@ import android.view.animation.AnticipateOvershootInterpolator;
 public class RadialMenu {
 	private static final int MENU_SIZE = 4;
 	private IconQuad[] menuItems;
-	//private int[] textures = new int[MENU_SIZE*4 + 1];
 	private Context mContext;
 	
 	private float degreeSeparation = 0.0f;
@@ -69,8 +68,7 @@ public class RadialMenu {
 			float targetX = (float)Math.sin(Math.toRadians(currentAngle));
 			float targetY = (float)Math.cos(Math.toRadians(currentAngle));
 			
-			// Add out transition
-			
+			// Add out transition			
 			final float[] stopPos = new float[]{targetX, targetY, -2.4f};
 			
 			//Log.i("RadialMenu", "Currrent angle: " + currentAngle + " menu items: Start: " + MatrixLogger.vector3ToString(startPos) + " Stop: " + MatrixLogger.vector3ToString(stopPos));
@@ -91,16 +89,11 @@ public class RadialMenu {
 		}
 	}
 
-	public void draw() {
-		
-		//gl.glMatrixMode(GL10.GL_PROJECTION);	
-		
+	public void draw() {		
 		for(int a = 0; a < MENU_SIZE; a++) {
 			menuItems[a].applyTransition();
 			menuItems[a].draw();			
 		}
-		
-		//gl.glMatrixMode(GL10.GL_MODELVIEW);
 	}
 	
 	private void loadTextures() {
@@ -184,34 +177,6 @@ public class RadialMenu {
 		throw new IllegalArgumentException("Unknown icon ID: " + a);
 	}
 	
-	/**
-	 * Given the supplied win x/y, this method calculates 3d->2d coords for each icon and tests for hit.
-	 * 
-	 * @param winX
-	 * @param winY
-	 * @return
-	 */
-	public int testSelect(int winX, int winY) {
-//		for(int a = 0; a < MENU_SIZE; a++) {
-//			IconQuad icon = menuItems[a];
-//			float[] obj = icon.get2DCoordsFrom3D();
-//			if (winX > obj[0] - 20 && winX < obj[0] + 20
-//					&& winY > obj[1] - 20 && winY < obj[1] + 20) {		
-//				
-//				// Set distance (in %) from center of icon.
-//				// interpolate x/y in some smart manner
-//				int diffX = Math.abs(winX - (int) obj[0]);
-//				int diffY = Math.abs(winY - (int) obj[1]);
-//				
-//				float diff = (float) Math.sqrt(diffX*diffX + diffY*diffY);
-//				distanceFromCenter = 1.0f - diff/20.0f;
-//				//Log.i("RadialMenu", "Distance from center X/Y: " + diffX + "/" + diffY + " gives diff: " + diff + " gives %: "+ distanceFromCenter);
-//				return a;
-//			}
-//		}			
-//		distanceFromCenter = -1.0f;
-		return -1;
-	}
 	
 	public static float distanceFromCenter = -1.0f;
 	

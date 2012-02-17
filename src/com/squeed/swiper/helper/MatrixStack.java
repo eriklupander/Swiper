@@ -8,7 +8,7 @@ package com.squeed.swiper.helper;
  * @author Erik
  *
  */
-public class MxStack {
+public class MatrixStack {
 	
 	private static final int MAX_DEPTH = 10;
 	

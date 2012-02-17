@@ -5,16 +5,11 @@ import java.nio.ByteOrder;
 
 import android.graphics.Bitmap;
 import android.opengl.GLES20;
-import android.opengl.Matrix;
 import android.util.Log;
-
-import com.squeed.swiper.ContactCardsRenderer;
-import com.squeed.swiper.helper.MxStack;
-import com.squeed.swiper.shader.Shaders;
 
 /**
  * Encapsulates data about a Contact Card. Holds both stuff like name and Bitmap, but
- * also the internal xyz 3D coords and XY 2D (translated) coords.
+ * also the internal xyz 3D coords.
  * 
  * @author Erik
  *
@@ -34,22 +29,12 @@ public class ContactCard extends MutableShape {
 	/**
 	 * Each contact shall have a unique color index assigned so we can perform color-based picking.
 	 */
-	public float colorIndex;
+	public int colorIndex;
 	
 	public Bitmap picture;
-	public Bitmap detailBitmap;
+//	public Bitmap detailBitmap;
 	public boolean isSelected = false;
-	
-	public int winX, winY;
-	
-//	public static char indicesAsChar[] = {
-//        3, 2, 0, 1               
-//	};
-//	
-//	public static char indicesAsChar2[] = {
-//        0, 1, 2, 3           
-//	};
-	
+
     private static float mVerticesData[] = {
     	// X, Y, Z, U, V (U, V are texture coordinates)
     	-1.0f, 1.0f, 0.0f, 0.0f, 0.0f,
