@@ -8,6 +8,25 @@ import android.util.Log;
 
 import com.squeed.swiper.fw.Transition;
 
+/**
+ * The base class for 3D-meshes. Contains common stuff such as
+ * xyz position (in world coordinates), xyz rotation
+ * and of course the actual vertice data.
+ * 
+ * (Actually, since our application mostly uses the same vertice data over and over,
+ * it might be a better idea to store the verticies at a single location with a handle
+ * in the MutableShape)
+ * 
+ * The transitionQueue is a simple way of queuing animations for this particular instance.
+ * 
+ * Yes, all these public variables make the old-school java coder in me a bit sick, but the Android
+ * SDK guidelines specifically stress the fact that virtual method calls are very expensive compared to just looking up
+ * a public field. This might have changed a bit since JIT was introduced in Android 2.2 though. JIT
+ * probably inlines such stuff really well.
+ * 
+ * @author Erik
+ *
+ */
 public abstract class MutableShape {
 	
 	public static final int FLOAT_SIZE_BYTES = 4;

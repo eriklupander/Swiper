@@ -35,6 +35,8 @@ public class ContactCard extends MutableShape {
 //	public Bitmap detailBitmap;
 	public boolean isSelected = false;
 
+	// All contact cards share the same verticies and texture coords. Thus it's pretty OK 
+	// to make that data static.
     private static float mVerticesData[] = {
     	// X, Y, Z, U, V (U, V are texture coordinates)
     	-1.0f, 1.0f, 0.0f, 0.0f, 0.0f,
@@ -52,7 +54,6 @@ public class ContactCard extends MutableShape {
 		verticesBuffer = ByteBuffer.allocateDirect(mVerticesData.length
                 * FLOAT_SIZE_BYTES).order(ByteOrder.nativeOrder()).asFloatBuffer();
         verticesBuffer.put(mVerticesData).position(0);
-
     }
 	
 	

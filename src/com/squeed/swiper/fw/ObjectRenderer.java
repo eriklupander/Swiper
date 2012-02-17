@@ -27,7 +27,7 @@ public class ObjectRenderer {
 	public void render(MutableShape shape, Shader shader) {
 		GLES20.glUseProgram(shader.program);
 		
-		render(shape.x, shape.y, shape.z, 0, shape.yRot, 0, shape.verticesBuffer, shape.textureId, shader, 1.0f);
+		render(shape.x, shape.y, shape.z, shape.xRot, shape.yRot, shape.zRot, shape.verticesBuffer, shape.textureId, shader, 1.0f);
 	}
 	
 	/**
@@ -43,7 +43,7 @@ public class ObjectRenderer {
 
 		GLES20.glUniform1f(attrib, value);		
 				
-		render(shape.x, shape.y, shape.z, 0, shape.yRot, 0, shape.verticesBuffer, shape.textureId, shader, 1.0f);
+		render(shape.x, shape.y, shape.z, shape.xRot, shape.yRot, shape.zRot, shape.verticesBuffer, shape.textureId, shader, 1.0f);
 	}
 	
 	public void renderReflection(MutableShape shape, Shader shader, int attrib, float value, float yOffset, float scale) {
@@ -52,7 +52,7 @@ public class ObjectRenderer {
 
 		GLES20.glUniform1f(attrib, value);		
 				
-		render(shape.x, shape.y-yOffset, shape.z, 0, shape.yRot, 0, shape.verticesBuffer, shape.textureId, shader, scale);
+		render(shape.x, shape.y-yOffset, shape.z, shape.xRot, shape.yRot, shape.zRot, shape.verticesBuffer, shape.textureId, shader, scale);
 	}
 	
 	public void renderReflection(MutableShape shape, Shader shader, int[] attribs, float[] values, float yOffset, float scale) {
@@ -60,13 +60,13 @@ public class ObjectRenderer {
 		for(int a = 0; a < attribs.length; a++) {
 			GLES20.glUniform1f(attribs[a], values[a]);
 		}
-		render(shape.x, shape.y-yOffset, shape.z, 0, shape.yRot, 0, shape.verticesBuffer, shape.textureId, shader, scale);
+		render(shape.x, shape.y-yOffset, shape.z, shape.xRot, shape.yRot, shape.zRot, shape.verticesBuffer, shape.textureId, shader, scale);
 	}
 	
 	public void renderSolidColor(MutableShape shape, Shader shader, int attrib, float value) {
 		GLES20.glUseProgram(shader.program);
 		GLES20.glUniform1f(attrib, value/255.0f);
-		renderSolidColor(shape.x, shape.y, shape.z, 0, shape.yRot, 0, shape.verticesBuffer, shader);
+		renderSolidColor(shape.x, shape.y, shape.z, shape.xRot, shape.yRot, shape.zRot, shape.verticesBuffer, shader);
 	}
 
 	
@@ -85,46 +85,57 @@ public class ObjectRenderer {
 			GLES20.glUniform1f(attribs[a], values[a]);
 		} // Shaders.maTimeHandlePulse, ContactCardsRenderer.time
 				
-		render(shape.x, shape.y, shape.z, 0, shape.yRot, 0, shape.verticesBuffer, shape.textureId, shader, 1.0f);
+		render(shape.x, shape.y, shape.z, shape.xRot, shape.yRot, shape.zRot, shape.verticesBuffer, shape.textureId, shader, 1.0f);
 	}
 
 	public void render(float x, float y, float z, float xRot, float yRot, float zRot, FloatBuffer verticies, int textureId, Shader shader, float scale) {
+		
+		// 1. Make TEXTURE0 active and bind it.
 		GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureId);
+        
+        // 2. Enable blending
         GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
         GLES20.glEnable(GLES20.GL_BLEND);
+        
+        // 3. Feed the verticies to the vertex shader
         verticies.position(TRIANGLE_VERTICES_DATA_POS_OFFSET);
         GLES20.glVertexAttribPointer(shader.mPositionHandle, 3, GLES20.GL_FLOAT, false,
                 TRIANGLE_VERTICES_DATA_STRIDE_BYTES, verticies);
 
+        // 4. Feed texture coordinates to fragment shader
         verticies.position(TRIANGLE_VERTICES_DATA_UV_OFFSET);
         GLES20.glEnableVertexAttribArray(shader.mPositionHandle);
-
         GLES20.glVertexAttribPointer(shader.mTextureHandle, 2, GLES20.GL_FLOAT, false,
                 TRIANGLE_VERTICES_DATA_STRIDE_BYTES, verticies);
-
         GLES20.glEnableVertexAttribArray(shader.mTextureHandle);
         
+        // 5. Save current matrices on our home-crafted matrix stack.
         MatrixStack.push(ContactCardsRenderer.mVMatrix);
         MatrixStack.push2(ContactCardsRenderer.mMMatrix);
         
+        // 6. First translate to WHERE we want to draw...
         Matrix.translateM(ContactCardsRenderer.mVMatrix, 0, x, y, z);    
+        
+        // 7. ... and THEN rotate (and scale, if applicable)
         Matrix.setRotateM(ContactCardsRenderer.mMMatrix, 0, yRot, 0, 1.0f, 0);
         if(scale != 1.0f)
         	Matrix.scaleM(ContactCardsRenderer.mMMatrix, 0, 1.0f, scale, 1.0f);
         
+        // 8. Multiply the VMMatrix with the ModelMatrix, store the result in the ModelViewProject Matrix.
         Matrix.multiplyMM(ContactCardsRenderer.mMVPMatrix, 0, ContactCardsRenderer.mVMatrix, 0, ContactCardsRenderer.mMMatrix, 0);
+        
+        // 9. Then multiply the projection matrix by the MVP matrix.
         Matrix.multiplyMM(ContactCardsRenderer.mMVPMatrix, 0, ContactCardsRenderer.mProjMatrix, 0, ContactCardsRenderer.mMVPMatrix, 0);
 
+        // 10. Feed the newly calculated MVP matrix to the shader
         GLES20.glUniformMatrix4fv(shader.mMVPMatrixHandle, 1, false, ContactCardsRenderer.mMVPMatrix, 0);
 
-        //GLES20.glUseProgram(shader.program);
-		//checkGlError("glUseProgram");
-		
+        // 11. And DRAW! (TODO switch to VertexBufferObject). Only 10 steps before we could actually draw something. OpenGL ES 2.0 FTW :-)
         GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4);
         
 
-        // Reverse translations... urgh, this should probably be performed using some fancy inverse transform...
+        // 12. Finally, reverse translations... urgh, this should probably be performed using some fancy inverse transform...
         MatrixStack.pop2(ContactCardsRenderer.mMMatrix);
         MatrixStack.pop(ContactCardsRenderer.mVMatrix);
 	}

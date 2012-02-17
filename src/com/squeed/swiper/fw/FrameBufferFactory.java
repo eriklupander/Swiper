@@ -9,6 +9,12 @@ import android.opengl.GLES20;
  * 
  * More or less copied from the ApiDemos and then adapted to GLES20.
  * 
+ * In the context of Swiper, we use a FBO to perform color-based picking.
+ * Note that we render the "picking" to a 60x100 pixel size buffer instead of 
+ * the full 480x800 buffer which gives a tremendous performance boost while still
+ * offering accurate picking. 6000 pixels at 16 bytes each (RGBA) is substantially less
+ * than 384 000 x 16 bytes. 96kb vs ~6 megabytes of data..
+ * 
  * @author Erik
  *
  */

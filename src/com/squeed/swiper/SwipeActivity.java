@@ -5,15 +5,11 @@ import javax.microedition.khronos.opengles.GL;
 import android.app.Activity;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.ContextMenu;
-import android.view.ContextMenu.ContextMenuInfo;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.Button;
 
 import com.squeed.swiper.helper.ContactLoader;
@@ -74,7 +70,8 @@ public class SwipeActivity extends Activity {
 		// Ideally a game should implement onResume() and onPause()
 		// to take appropriate action when the activity looses focus
 		super.onResume();
-		ContactCard[] contacts = contactLoader.loadContacts();		
+		ContactCard[] contacts = contactLoader.loadContacts();	
+		
 		if(contacts == null || contacts.length == 0) {
 			setContentView(R.layout.main);
 			Button btn = (Button) findViewById(R.id.Button01);
@@ -87,17 +84,12 @@ public class SwipeActivity extends Activity {
 			
 			return;
 		}
+		
 		mGLSurfaceView.refreshContacts(contacts);
 		mGLSurfaceView.onResume();
 		
 	}
 
-//	@Override
-//	public void onBackPressed() {
-//		super.onBackPressed();
-//		finish();
-//		
-//	}
 
 	@Override
 	protected void onPause() {
@@ -109,24 +101,23 @@ public class SwipeActivity extends Activity {
 	}
 		
 	
-	public void onCreateContextMenu(ContextMenu menu, View v,
-			ContextMenuInfo menuInfo) {
-		super.onCreateContextMenu(menu, v, menuInfo);
-		menu.add(0, 1, 0, "Edit");
-		menu.add(0, 2, 0, "Delete");
-	}
+//	public void onCreateContextMenu(ContextMenu menu, View v,
+//			ContextMenuInfo menuInfo) {
+//		super.onCreateContextMenu(menu, v, menuInfo);
+//		menu.add(0, 1, 0, "Edit");
+//		menu.add(0, 2, 0, "Delete");
+//	}
 
 	public boolean onContextItemSelected(MenuItem item) {
-		AdapterContextMenuInfo info = (AdapterContextMenuInfo) item
-				.getMenuInfo();
-		switch (item.getItemId()) {
-			case 1:
-				Log.i("CONTEXT-MENU", "(1)Info-ID");				
-				break;
-			case 2:
-				Log.i("CONTEXT-MENU", "(2)Info-ID");
-				break;
-		}
+//				.getMenuInfo();
+//		switch (item.getItemId()) {
+//			case 1:
+//				Log.i("CONTEXT-MENU", "(1)Info-ID");				
+//				break;
+//			case 2:
+//				Log.i("CONTEXT-MENU", "(2)Info-ID");
+//				break;
+//		}
 		mGLSurfaceView.bringToFront();
 		return super.onContextItemSelected(item);		
 	}

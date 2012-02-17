@@ -362,7 +362,7 @@ public class ContactCardsRenderer implements GLSurfaceView.Renderer{
 				if(!renderPulse) {					
 					renderer.render(cc, Shaders.defaultShader);					
 				} else {
-					renderer.render(cc, Shaders.pulseShader, Shaders.pulseShader.time, time);
+					renderer.render(cc, Shaders.pulseShader, Shaders.pulseShader.timeHandle, time);
 				}
 					
 				if(renderReflection) {
