@@ -27,9 +27,9 @@ import android.view.animation.AnticipateOvershootInterpolator;
 /**
  * The radial menu is made up of (n) number of IconQuads, evenly distributed across 360 degrees.
  * 
- * Note - this class is specific to the SwipeBook app for now. 
+ * Note - this class is specific to the Swiper app for now. 
  * 
- * @author erlu708
+ * @author Erik
  *
  */
 public class RadialMenu {
@@ -121,7 +121,7 @@ public class RadialMenu {
     
 			int resourceId = getIconOfIndex(a);
 			loadTexture(resourceId);
-			menuItems[a].textureIndex = ContactCardsRenderer.currentTextureIndex;
+			menuItems[a].textureId = ContactCardsRenderer.currentTextureIndex;
 			
 			ContactCardsRenderer.currentTextureIndex++;
 		}

@@ -43,12 +43,17 @@ public class TouchSurfaceView extends GLSurfaceView {
 	}
 
 	private void setInitialPositionsForCards(ContactCard[] contacts) {
+		
+		float colorIdx = 0.1f;
+		
 		for (int i = 0; i < contacts.length; i++) {
 			if(contacts[i] != null) {
 				contacts[i].x = i * 2.5f;
 				contacts[i].y = 0.0f;
 				contacts[i].z = -2.0f - (Math.abs(i * 2.5f) / 2);
 				contacts[i].yRot = 0.0f;
+				contacts[i].colorIndex = colorIdx;
+				colorIdx += 0.01f;
 			}
 		}
 	}

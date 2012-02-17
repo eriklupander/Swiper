@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="close">Close</string>
-    <string name="hello">Hello World, SwipeActivity!</string>
-    <string name="app_name">Swipe PhoneBook</string>
+    <string name="hello">Hello World, SwiperActivity!</string>
+    <string name="app_name">Swiper PhoneBook</string>
 <string name="t17039915">Hem</string>
 <string name="t17039905">Mobil</string>
 </resources>

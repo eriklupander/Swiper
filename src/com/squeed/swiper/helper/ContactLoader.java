@@ -16,6 +16,17 @@ import android.net.Uri;
 import android.provider.ContactsContract;
 import android.util.Log;
 
+/**
+ * Uses the Contacts API to load contacts from the phonebook.
+ * 
+ * Note that the actual data returned may differ a bit depending on phone
+ * model and vendor. My old HTC Desire included Facebook photos for all
+ * applicable contacts, while both Samsung Galaxy Tab and Samsung Galaxy S2 
+ * only returns photos associated with the actual google account contacts.
+ * 
+ * @author Erik
+ *
+ */
 public class ContactLoader {
 
 	static final String[] CONTACTS_SUMMARY_PROJECTION = new String[] {

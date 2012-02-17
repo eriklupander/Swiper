@@ -6,7 +6,7 @@ import javax.microedition.khronos.opengles.GL10;
  * Picked this off the internet, an alternate implementation of gluUnProject.
  * 
  * @author unknown
- *
+ * @deprecated Not used at the moment.
  */
 public class Picker {
 	private static final float[] _tempGluUnProjectData = new float[40];

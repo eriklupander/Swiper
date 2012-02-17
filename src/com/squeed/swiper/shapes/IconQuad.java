@@ -43,20 +43,20 @@ public class IconQuad extends MutableShape {
 	public void draw() {
 		
 		GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, ContactCardsRenderer.textureIDs[this.textureIndex]);
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, ContactCardsRenderer.textureIDs[this.textureId]);
         GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
         GLES20.glEnable(GLES20.GL_BLEND);
         mTriangleVertices.position(TRIANGLE_VERTICES_DATA_POS_OFFSET);
-        GLES20.glVertexAttribPointer(Shaders.maPositionHandle, 3, GLES20.GL_FLOAT, false,
+        GLES20.glVertexAttribPointer(Shaders.defaultShader.mPositionHandle, 3, GLES20.GL_FLOAT, false,
                 TRIANGLE_VERTICES_DATA_STRIDE_BYTES, mTriangleVertices);
 
         mTriangleVertices.position(TRIANGLE_VERTICES_DATA_UV_OFFSET);
-        GLES20.glEnableVertexAttribArray(Shaders.maPositionHandle);
+        GLES20.glEnableVertexAttribArray(Shaders.defaultShader.mPositionHandle);
 
-        GLES20.glVertexAttribPointer(Shaders.maTextureHandle, 2, GLES20.GL_FLOAT, false,
+        GLES20.glVertexAttribPointer(Shaders.defaultShader.mTextureHandle, 2, GLES20.GL_FLOAT, false,
                 TRIANGLE_VERTICES_DATA_STRIDE_BYTES, mTriangleVertices);
 
-        GLES20.glEnableVertexAttribArray(Shaders.maTextureHandle);
+        GLES20.glEnableVertexAttribArray(Shaders.defaultShader.mTextureHandle);
         
         
         Matrix.translateM(ContactCardsRenderer.mVMatrix, 0, x, -y, -z*1.4f);        
@@ -64,7 +64,7 @@ public class IconQuad extends MutableShape {
         Matrix.multiplyMM(ContactCardsRenderer.mMVPMatrix, 0, ContactCardsRenderer.mVMatrix, 0, ContactCardsRenderer.mMMatrix, 0);
         Matrix.multiplyMM(ContactCardsRenderer.mMVPMatrix, 0, ContactCardsRenderer.mProjMatrix, 0, ContactCardsRenderer.mMVPMatrix, 0);
 
-        GLES20.glUniformMatrix4fv(Shaders.muMVPMatrixHandle, 1, false, ContactCardsRenderer.mMVPMatrix, 0);
+        GLES20.glUniformMatrix4fv(Shaders.defaultShader.mMVPMatrixHandle, 1, false, ContactCardsRenderer.mMVPMatrix, 0);
         
         GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4);
         

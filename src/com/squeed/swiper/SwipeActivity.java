@@ -1,27 +1,27 @@
 package com.squeed.swiper;
 
-import com.squeed.swiper.helper.ContactLoader;
-import com.squeed.swiper.shapes.ContactCard;
+import javax.microedition.khronos.opengles.GL;
 
 import android.app.Activity;
+import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ContextMenu.ContextMenuInfo;
 import android.view.View.OnClickListener;
-import android.widget.Button;
 import android.widget.AdapterView.AdapterContextMenuInfo;
+import android.widget.Button;
+
+import com.squeed.swiper.helper.ContactLoader;
+import com.squeed.swiper.shapes.ContactCard;
+import com.squeed.swiper.util.MatrixTrackingGL;
 
 /**
- * Starts the SwipeBook activity. Uses inner classes for GLSurfaceView and Renderer.
- * 
- * TODO try to refactor non-performance critical stuff into separate classes.
- * 
- * (virtual method calls are much more expensive than inline code etc.)
+ * Starts the Swiper activity.
  * 
  * @author Erik
  *
@@ -40,7 +40,10 @@ public class SwipeActivity extends Activity {
 		ContactCard[] contacts = new ContactLoader(this).loadContacts();
 		
 		mGLSurfaceView = new TouchSurfaceView(this, contacts);
-
+		mGLSurfaceView.setGLWrapper(new GLSurfaceView.GLWrapper() {			
+            public GL wrap(GL gl) {
+                return new MatrixTrackingGL(gl);
+            }});
 		setContentView(mGLSurfaceView);
 		mGLSurfaceView.requestFocus();
 		mGLSurfaceView.setFocusableInTouchMode(true);	
@@ -64,6 +67,7 @@ public class SwipeActivity extends Activity {
 	public static final int INC_REFL = 3;
 	public static final int DEC_REFL = 4;
 	public static final int ROTATE = 5;
+	public static final int SOLID = 6;
 
 	@Override
 	protected void onResume() {
@@ -157,6 +161,9 @@ public class SwipeActivity extends Activity {
 	        return true;
 	    case R.id.rotate:
 	    	mGLSurfaceView.toggle(ROTATE);
+	        return true;
+	    case R.id.solid:
+	    	mGLSurfaceView.toggle(SOLID);
 	        return true;
 	    default:
 	        return super.onOptionsItemSelected(item);

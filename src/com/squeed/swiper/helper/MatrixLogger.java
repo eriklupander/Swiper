@@ -1,6 +1,11 @@
 package com.squeed.swiper.helper;
 
-
+/**
+ * Helper class that can dump a matrix into a string for debugging purposes.
+ * 
+ * @author Erik
+ *
+ */
 public class MatrixLogger {
 	
 	public static String vector3ToString(float[] vector) {
@@ -8,6 +13,13 @@ public class MatrixLogger {
 			throw new IllegalArgumentException("This log method only accepts 3 vector");
 		}
 		return "[" + vector[0] + "][" + vector[1] + "][" + vector[2] + "]";
+	}
+	
+	public static String vector4ToString(float[] vector) {
+		if(vector.length != 4) {
+			throw new IllegalArgumentException("This log method only accepts 4 vector");
+		}
+		return "[" + vector[0] + "][" + vector[1] + "][" + vector[2] + "][" + vector[3] + "]";
 	}
 	
 	public static String matrix44ToString(float[] matrix) {

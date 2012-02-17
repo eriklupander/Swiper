@@ -11,16 +11,11 @@ import static android.opengl.GLES10.GL_TEXTURE_WRAP_T;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
-
-import com.squeed.swiper.composites.RadialMenu;
-import com.squeed.swiper.fw.Transition;
-import com.squeed.swiper.helper.TextureLoader;
-import com.squeed.swiper.shader.Shaders;
-import com.squeed.swiper.shapes.BgQuad;
-import com.squeed.swiper.shapes.ContactCard;
 
 import android.app.Activity;
 import android.content.Context;
@@ -36,11 +31,22 @@ import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.AnticipateOvershootInterpolator;
 import android.view.animation.OvershootInterpolator;
 
+import com.squeed.swiper.composites.RadialMenu;
+import com.squeed.swiper.fw.FrameBufferFactory;
+import com.squeed.swiper.fw.ObjectRenderer;
+import com.squeed.swiper.fw.Transition;
+import com.squeed.swiper.helper.MatrixLogger;
+import com.squeed.swiper.helper.TextureLoader;
+import com.squeed.swiper.shader.Shaders;
+import com.squeed.swiper.shapes.BgQuad;
+import com.squeed.swiper.shapes.ContactCard;
+import com.squeed.swiper.util.MathHelper;
+
 /**
  * Renders the scene, this is the "main" loop of the 3D-rendering. Note the heavy usage of statics,
  * due to performance constraints on devices every small bit can help.
  * 
- * (And in practive, the renderer is a singleton anyway)
+ * @author Erik
  */
 public class ContactCardsRenderer implements GLSurfaceView.Renderer{
 		
@@ -48,13 +54,14 @@ public class ContactCardsRenderer implements GLSurfaceView.Renderer{
 		private static final float SWIPE_VELOCITY_DECREASE = 0.008f;
 		private static final float BOUNCE_VELOCITY_DECREASE = 0.045f;
 		
-		private ContactCard[] contactCards;		
+		private static ContactCard[] contactCards;		
 		public static int[] textureIDs;
 
 		public static int currentTextureIndex = 0;
 
+		private ObjectRenderer renderer;
 		private Context mContext;
-		
+		//private Projector mProjector;
 		private static float currentVelocity = 0.0f;
 		private static float direction = 0.0f;
 		private static float xTranslate = 0.0f;
@@ -69,26 +76,33 @@ public class ContactCardsRenderer implements GLSurfaceView.Renderer{
 		private static final OvershootInterpolator bounceIntp = new OvershootInterpolator();
 		
 		public static boolean inSelectionMode = false;
-		private static boolean isBouncing = false;
-		
+		private static boolean isBouncing = false;		
 		private static boolean hasBeenPaused = false;
 		
-		private RadialMenu radialMenu;
-		private BgQuad bgQuad;
+		private static RadialMenu radialMenu;
+		private static BgQuad bgQuad;
+		
+		private boolean isZoomToFront = false;
+		private boolean isZoomToBack = false;
+		private boolean renderPulse = false;
+		private boolean renderSolid = false;
 
 		public static int[] viewport = null;
 	
 		/******************* GL ES 2 inits ****************/
 		
 
+		/** The ModelView Projection matrix */
+	    public static  float[] mMVPMatrix = 	new float[16];
+	    /** The Projection Matrix */
+	    public static  float[] mProjMatrix = 	new float[16];
+	    /** The Model matrix */
+	    public static  float[] mMMatrix = 		new float[16];
+	    /** The View matrix **/	    
+	    public static  float[] mVMatrix = 		new float[16];
 
-	    public static float[] mMVPMatrix = new float[16];
-	    public static  float[] mProjMatrix = new float[16];
-	    public static  float[] mMMatrix = new float[16];
-	    public static  float[] mVMatrix = new float[16];
-
-	    
-	    
+	    /** Window coordinates */
+	    private static float[] winCoords;
 	    
 	    
 	    public static int time = 0;
@@ -102,11 +116,14 @@ public class ContactCardsRenderer implements GLSurfaceView.Renderer{
 		 */
 		public ContactCardsRenderer(Activity mContext, ContactCard[] contacts, TouchSurfaceView touchSurfaceView) {			
 			this.mContext = mContext;
-			this.contactCards = contacts;
+			renderer = new ObjectRenderer();
+			contactCards = contacts;
 			
 			// Make space for swipe-mode and selected-mode version of each card.
 			// Space for 1000 texture id's...
 			ContactCardsRenderer.textureIDs = new int[1000];
+			
+			//mProjector = new Projector();
 		}
 
 
@@ -114,15 +131,15 @@ public class ContactCardsRenderer implements GLSurfaceView.Renderer{
 		 * @see nu.epsilon.swipebook.IContactCardRenderer#refreshContacts(nu.epsilon.swipebook.shapes.ContactCard[])
 		 */
 		public void refreshContacts(ContactCard[] contacts) {
-			for(int a = 0; a < this.contactCards.length; a++) {
-				if(this.contactCards[a] != null) {
-					this.contactCards[a].name = contacts[a].name;
-					this.contactCards[a].picture = contacts[a].picture;
+			for(int a = 0; a < contactCards.length; a++) {
+				if(contactCards[a] != null) {
+					contactCards[a].name = contacts[a].name;
+					contactCards[a].picture = contacts[a].picture;
 				}
 			}
 			if(hasBeenPaused) {
 				isZoomToBack = true;
-				this.contactCards[selectedIndex].popTransition();
+				contactCards[selectedIndex].popTransition();
 			}
 		}
 
@@ -150,7 +167,7 @@ public class ContactCardsRenderer implements GLSurfaceView.Renderer{
 		 */
 		public void onDrawFrame(GL10 gl) {
 			if(time > Integer.MAX_VALUE - 20) {
-				time = 0;
+				time = 0;				
 			}
 			time+=15;
 			
@@ -178,37 +195,53 @@ public class ContactCardsRenderer implements GLSurfaceView.Renderer{
 		    	Matrix.setLookAtM(mVMatrix, 0, (float) Math.sin(Math.toRadians(currentRotation))*6.0f, 0.0f, 6.0f, (float) Math.sin(Math.toRadians(currentRotation))*6.0f, 0f, 0f, 0f, 1.0f, 0.0f);
 		    }
 
-			// background draw disabled, kills fps on emulator.
+			// background draw disabled by default, kills fps on emulator.
 		    if(renderBg) {		    	
 		    	renderBackground();
 		    }
 		    
 		   
 			
-			renderSwipe(gl);
+			renderSwipe();
 			if (inSelectionMode) {
-				GLES20.glUseProgram(Shaders.mProgram);
+				GLES20.glUseProgram(Shaders.defaultShader.program);
 				//checkGlError("glUseProgram");
 				renderCardTransition();
 			}
 	
 			frames++;
 			if(frames == 150) {
-				float fps = 150.0f / ((System.currentTimeMillis() - startTime)/1000.0f);
+				//float fps = 150.0f / ((System.currentTimeMillis() - startTime)/1000.0f);
 				//Log.i("FPS", "150 frames took : " + (System.currentTimeMillis() - startTime) + " ms to render, which means " + fps + " fps");
 				frames = 0;
 			}
+			
+//			if(trySelectNextFrame) {
+//				GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, mFramebuffer);
+//				GLES20.glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+//			    GLES20.glClear( GLES20.GL_DEPTH_BUFFER_BIT | GLES20.GL_COLOR_BUFFER_BIT);
+//				renderSolid = true;
+//				renderSwipe();
+//				renderSolid = false;
+//				ByteBuffer pixelBuffer = ByteBuffer.allocateDirect(1 * 1 * 4).order(ByteOrder.nativeOrder());
+//			    GLES20.glReadPixels(gWinX, Y_SIZE-gWinY, 1, 1, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, pixelBuffer);
+//			    Log.i(TAG, "Data:" + pixelBuffer.get(0) + "," + pixelBuffer.get(1) + "," + pixelBuffer.get(2) +"," + pixelBuffer.get(3));
+//				
+//			    GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
+//				trySelectNextFrame = false;
+//			}
+
+//			mProjector.getCurrentModelView(gl);
+//			mProjector.getCurrentProjection(gl);
 		}
 
 		private void renderBackground() {
-			GLES20.glUseProgram(Shaders.mProgram);
+			GLES20.glUseProgram(Shaders.defaultShader.program);
 			bgQuad.draw();
 		}
 		
 		
-		private boolean isZoomToFront = false;
-		private boolean isZoomToBack = false;
-		private boolean renderPulse = false;
+		
 		
 		
 		
@@ -216,7 +249,7 @@ public class ContactCardsRenderer implements GLSurfaceView.Renderer{
 			if(selectedIndex == -1) 
 				return;
 			
-			ContactCard cc = this.contactCards[selectedIndex];		
+			ContactCard cc = contactCards[selectedIndex];		
 			
 //			if(cc.selectedTextureId == -1 && cc.detailBitmap != null) {
 //				createTextureOnTheFly(gl, selectedIndex, cc);
@@ -251,15 +284,17 @@ public class ContactCardsRenderer implements GLSurfaceView.Renderer{
 			cc.winX = (int) winCoords[0];
 			cc.winY = (int) (Y_SIZE-winCoords[1]);
 			
-			GLES20.glUseProgram(Shaders.mProgram);
-			cc.draw(textureIDs[cc.textureIndex]);
+			//GLES20.glUseProgram(Shaders.defaultShader.program);
+			//cc.draw(textureIDs[cc.textureIndex]);
+			renderer.render(cc, Shaders.defaultShader);
 			if(renderReflection) {
-				GLES20.glUseProgram(Shaders.mProgramReflection);
-				cc.drawAsReflection(textureIDs[cc.textureIndex]);
+				GLES20.glUseProgram(Shaders.reflectionShader.program);
+				renderer.render(cc, Shaders.reflectionShader);
+				//cc.drawAsReflection(textureIDs[cc.textureId]);
 			}
 			
 			if(radialMenu.isVisible) {
-				GLES20.glUseProgram(Shaders.mProgram);
+				GLES20.glUseProgram(Shaders.defaultShader.program);
 				radialMenu.draw();
 			}
 		}
@@ -287,8 +322,8 @@ public class ContactCardsRenderer implements GLSurfaceView.Renderer{
 			xTranslate = (direction / 1000.0f)
 					* intp.getInterpolation(ContactCardsRenderer.currentVelocity);
 			if (!isBouncing) {
-				if (this.contactCards[this.contactCards.length - 1].x - xTranslate < 0.0f
-						|| this.contactCards[0].x - xTranslate > 0.0f) {
+				if (contactCards[contactCards.length - 1].x - xTranslate < 0.0f
+						|| contactCards[0].x - xTranslate > 0.0f) {
 					isBouncing = true;
 					velocityDecrease = BOUNCE_VELOCITY_DECREASE;
 					currentVelocity = 0.5f;
@@ -309,23 +344,22 @@ public class ContactCardsRenderer implements GLSurfaceView.Renderer{
 		}
 
 
-		private static float[] winCoords;
 		
-		private void renderSwipe(GL10 gl) {
+		
+		private void renderSwipe() {
 			// each frame, decrease the velocity
 			updateVelocity();
 
 			// Get the base "scroll" position. Note the interpolation.
 			calcXTranslation();
-
 		
-			for (int i = 0; i < this.contactCards.length; i++) {
-				if( this.contactCards[i] == null) {
+			for (int i = 0; i < contactCards.length; i++) {
+				if( contactCards[i] == null) {
 					//Log.i("TAG", "contact card of index " + i + " is null????!?!?");
 					continue;
 				}
-				ContactCard cc = this.contactCards[i];
-
+				ContactCard cc = contactCards[i];
+				
 				if (cc.isSelected)
 					continue;
 
@@ -341,29 +375,28 @@ public class ContactCardsRenderer implements GLSurfaceView.Renderer{
 				cc.winX = (int) (X_SIZE-winCoords[0]);
 				cc.winY = (int) (winCoords[1]); 
 				
+				// The most crude occlusion culling ever...
 				if(cc.x < -5 || cc.x > 5) {					
 					continue;
 				}
-						
-				if(!renderPulse) {
-					GLES20.glUseProgram(Shaders.mProgram);
-					//checkGlError("glUseProgram");
-					cc.draw(textureIDs[this.contactCards[i].textureIndex]);
+					
+				if(renderSolid) {
+					renderer.renderSolidColor(cc, Shaders.colorShader,  Shaders.colorShader.colorHandle, cc.colorIndex);
+					//Log.i(TAG, "Rendered solid pass!");
+					continue;
+				}
+				
+				if(!renderPulse) {					
+					renderer.render(cc, Shaders.defaultShader);					
 				} else {
-					GLES20.glUseProgram(Shaders.mProgramPulse);
-					//checkGlError("glUseProgram");
-					cc.drawPulse(textureIDs[this.contactCards[i].textureIndex]);
+					renderer.render(cc, Shaders.pulseShader, Shaders.pulseShader.time, time);
 				}
 					
 				if(renderReflection) {
 					if(!renderPulse) {
-						GLES20.glUseProgram(Shaders.mProgramReflection);
-						//checkGlError("glUseProgram");
-						cc.drawAsReflection(textureIDs[this.contactCards[i].textureIndex]);
-					} else {
-						GLES20.glUseProgram(Shaders.mProgramPulseReflection);
-						//checkGlError("glUseProgram");
-						cc.drawAsPulseReflection(textureIDs[this.contactCards[i].textureIndex]);
+						renderer.renderReflection(cc, Shaders.reflectionShader, Shaders.reflectionShader.amount, amount, 2.1f, -1.0f);
+					} else {						
+						renderer.renderReflection(cc, Shaders.pulseReflectionShader, new int[]{Shaders.pulseReflectionShader.time, Shaders.pulseReflectionShader.amount}, new float[]{time, amount}, 2.1f, -1.0f);
 					}
 				}
 			}
@@ -371,60 +404,22 @@ public class ContactCardsRenderer implements GLSurfaceView.Renderer{
 		}
 
 	
-		
-		private boolean checkInViewFrustum(ContactCard cc, int index) {
-			//return Visibility.visibilityTest(mProjMatrix, 0, cc.getTranslatedVerticies(), 0, ContactCard.indicesAsChar, 0, 3) > 0;
-			return true;
-		}
-
-
-
 		private void setCurrentTexture(int i, boolean selected) {
-			if(i >= this.contactCards.length || i < 0) {
+			if(i >= contactCards.length || i < 0) {
 				return;				
 			}
+			
+			GLES20.glActiveTexture(GL10.GL_TEXTURE0);
+			GLES20.glBindTexture(GL10.GL_TEXTURE_2D,
+					textureIDs[contactCards[i].textureId]);
+		}
 
-			
-			//if(!selected) {
-				GLES20.glActiveTexture(GL10.GL_TEXTURE0);
-				GLES20.glBindTexture(GL10.GL_TEXTURE_2D,
-						textureIDs[this.contactCards[i].textureIndex]);		
-//			} else {
-//				if(contactCards[i].selectedTextureId != -1) {
-//					gl.glActiveTexture(GL10.GL_TEXTURE1);
-//					gl.glBindTexture(GL10.GL_TEXTURE_2D,
-//							textureIDs[contactCards[i].selectedTextureId]);					
-//				} else {
-//					gl.glActiveTexture(GL10.GL_TEXTURE0);
-//					gl.glBindTexture(GL10.GL_TEXTURE_2D,
-//							textureIDs[contactCards[i].textureIndex]);		
-//				}				
-//			}
-		}
-		
-		private void createTextureOnTheFly(GL10 gl, int i, ContactCard cc) {
-			Log.i("SSS", "createTextureOnTheFly: " + currentTextureIndex);
-			gl.glGenTextures(1, textureIDs, currentTextureIndex++);
-			gl.glBindTexture(0, textureIDs[currentTextureIndex]);
-			
-			gl.glTexParameterf(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_MIN_FILTER,
-					GL10.GL_NEAREST);
-			gl.glTexParameterf(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_MAG_FILTER,
-					GL10.GL_LINEAR);
-			
-			
-			GLUtils.texImage2D(GL_TEXTURE_2D, 0, cc.detailBitmap, 0);
-			
-			cc.detailBitmap.recycle();
-			
-			cc.selectedTextureId = currentTextureIndex;
-			currentTextureIndex++;
-			Log.i("CreateDetailBitmap", "posIndex: " + i + " texture ID: [" + textureIDs[cc.selectedTextureId]  + "]");
-			
-		}
 		private static int X_SIZE, Y_SIZE;
 		private static float[] obj = new float[3];
+		
 		private int[] viewport3 = null;
+		private float fNear = 1.0f;
+		private float fFar = 20.0f;
 		
 		private float[] get2DCoordsFrom3D(float x, float y, float z) {					
 			
@@ -432,6 +427,26 @@ public class ContactCardsRenderer implements GLSurfaceView.Renderer{
 					mProjMatrix, 0, viewport3, 0, obj, 0);
 
 			return obj;
+		}
+		
+		private static float[] result = new float[4];
+		private static float[] result3 = new float[4];
+		
+		private float[] get3DCoordsFrom2D(float x, float y, float z) {		
+			Log.i(TAG, "3D W:" + x + " H: " + y);
+			
+			MathHelper.gluUnProject(x, y, z, mMMatrix, 0, mProjMatrix, 0, viewport3, 0, result, 0);
+			Log.i(TAG, "3D " + MatrixLogger.vector4ToString(result));
+			return result;			
+			//GLU.gluUnProject(x, y, z, mProjector.mGrabber.mModelView, 0,  mProjector.mGrabber.mProjection, 0, viewport3, 0, result3, 0);
+			//return result;
+//			result3[0] /= result3[3];
+//			result3[1] /= result3[3];
+//			result3[2] /= result3[3];
+//			//xyzw[3] /= xyzw[3];
+//			result[3] = 1;
+//			Log.i(TAG, "3D " + MatrixLogger.vector4ToString(result3));
+//			return result3;
 		}
 		
 		
@@ -444,7 +459,8 @@ public class ContactCardsRenderer implements GLSurfaceView.Renderer{
 			viewport3 = new int[]{0, 0, width, height}; 
 			GLES20.glViewport(0, 0, width, height);
 		    float ratio = (float) width / height;
-		    Matrix.frustumM(mProjMatrix, 0, -ratio, ratio, -1, 1, 1, 20);
+		    Matrix.frustumM(mProjMatrix, 0, -ratio, ratio, -1, 1, fNear, fFar);
+		    Log.i(TAG, MatrixLogger.matrix44ToString(mProjMatrix));
 		    X_SIZE = width;
 		    Y_SIZE = height;
 		}
@@ -456,6 +472,8 @@ public class ContactCardsRenderer implements GLSurfaceView.Renderer{
 		 * @see nu.epsilon.swipebook.IContactCardRenderer#onSurfaceCreated(javax.microedition.khronos.opengles.GL10, javax.microedition.khronos.egl.EGLConfig)
 		 */
 		public void onSurfaceCreated(GL10 gl, EGLConfig config) {
+			mTargetTexture = FrameBufferFactory.createTargetTexture(gl, mFramebufferWidth, mFramebufferHeight);
+			mFramebuffer = FrameBufferFactory.createFrameBuffer(gl, mFramebufferWidth, mFramebufferHeight, mTargetTexture);
 			
 			currentTextureIndex = 0;
 			/*
@@ -466,6 +484,7 @@ public class ContactCardsRenderer implements GLSurfaceView.Renderer{
 			GLES20.glDisable(GL10.GL_DITHER);
 			
 			Shaders.initDefaultShader();
+			Shaders.initColorShader();
 			Shaders.initReflectionShader();
 			Shaders.initPulseShader();
 			Shaders.initPulseReflectionShader();
@@ -475,43 +494,33 @@ public class ContactCardsRenderer implements GLSurfaceView.Renderer{
 			
 			radialMenu = new RadialMenu(mContext);
 			
-			
 			/*
 			 * Some one-time OpenGL initialization can be made here probably
 			 * based on features of this particular context
 			 */
 			GLES20.glHint(GL10.GL_PERSPECTIVE_CORRECTION_HINT, GL10.GL_NICEST);
 
-			GLES20.glClearColor(1, 1, 1, 1);
+			//GLES20.glClearColor(1, 1, 1, 1);
 			GLES20.glCullFace(GL10.GL_BACK);			
 			GLES20.glEnable(GL10.GL_DEPTH_TEST);
 			GLES20.glEnable(GL10.GL_BLEND);
 			GLES20.glEnable(GL10.GL_TEXTURE_2D);
 			
+			// Setup camera
 			Matrix.setLookAtM(mVMatrix, 0, 0, 0, 6.0f, 0f, 0f, 0f, 0f, 1.0f, 0.0f);
 		}
 
 
 
-		
-		
-
-	    
-
-		
-
 		private void setupTextures(GL10 gl) {
 			
-			this.bgQuad = TextureLoader.loadBackgroundTexture(gl, mContext);
+			bgQuad = TextureLoader.loadBackgroundTexture(gl, mContext);
 			
-			GLES20.glGenTextures(this.contactCards.length, textureIDs, 0);
-			for (int a = 0; a < this.contactCards.length; a++)
-				setupCardTexture(gl, this.contactCards[a]);
+			GLES20.glGenTextures(contactCards.length, textureIDs, 0);
+			for (int a = 0; a < contactCards.length; a++)
+				setupCardTexture(gl, contactCards[a]);
 
 		}
-
-
-
 
 
 		
@@ -567,77 +576,138 @@ public class ContactCardsRenderer implements GLSurfaceView.Renderer{
 			GLUtils.texImage2D(GL_TEXTURE_2D, 0, bm, 0);
 
 			bm.recycle();
-			contactCard.textureIndex = currentTextureIndex;
+			contactCard.textureId = textureIDs[currentTextureIndex];
 			currentTextureIndex++;
 		}
 
-
-
+		public static int mTargetTexture;
+		private int mFramebuffer;
+        private int mFramebufferWidth = 480;
+        private int mFramebufferHeight = 800;
+		
 	/* (non-Javadoc)
 	 * @see nu.epsilon.swipebook.IContactCardRenderer#testSelect(int, int)
 	 */
+		
+	static ByteBuffer pixelBuffer = ByteBuffer.allocateDirect(1 * 1 * 4).order(ByteOrder.nativeOrder());
+		
 	public int testSelect(int winX, int winY) {
 
-		// If showing radialmenu, test selection for those first.
+		// THIS WORKS!!!
+		GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, mFramebuffer);
+
+	    GLES20.glClear( GLES20.GL_DEPTH_BUFFER_BIT | GLES20.GL_COLOR_BUFFER_BIT);
+		renderSolid = true;
+		renderSwipe();
+		renderSolid = false;
+		ByteBuffer pixelBuffer = ByteBuffer.allocateDirect(1 * 1 * 4).order(ByteOrder.nativeOrder());
+	    GLES20.glReadPixels(winX, Y_SIZE-winY, 1, 1, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, pixelBuffer);
+	    Log.i(TAG, "Data:" + pixelBuffer.get(0) + "," + pixelBuffer.get(1) + "," + pixelBuffer.get(2) +"," + pixelBuffer.get(3));
 		
-		if(radialMenu.isVisible) {
-			if(radialMenu.inTransition()) {
-				return -1;
-			}
-			 int selectedIconIndex = radialMenu.testSelect(winX, winY);
-			 if(selectedIconIndex > -1) {
-				 if(selectedIconIndex == 0 || selectedIconIndex == 1) {
-					 radialMenu.execute(selectedIconIndex, this.contactCards[selectedIndex].id);
-				 }				
-				 return 1;
-			 }
-		 }
+	    GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
+	    // END WORKING BLOCK
+	    
+		//float[] viewRay = MathHelper.getViewRay(winX, winY, X_SIZE, Y_SIZE, new float[]{0.0f, 0.0f, 6.0f}, mVMatrix, mProjMatrix);
 		
-		// If we're currently in a transition, break selection.
-		
-		
-		for (int i = 0; i < this.contactCards.length; i++) {
-			ContactCard cc = this.contactCards[i];
-			if(cc == null) {
-				continue;
-			}
-			if(cc.winX > X_SIZE || cc.winX < 0 || cc.currentTransition != null && cc.currentTransition.timeOfStart != 0)
-				continue;
-			if (checkSelection(winX, winY, cc)) {
-				Log.i("Selection", "Selected: " + cc.name + " at winX: " + cc.winX + ", winY: "+ cc.winY);
-				
-				// if already selected...unselect..
-				if(cc.isSelected) {					
-					isZoomToBack = true;		
-					cc.popTransition();
-					radialMenu.toggleInOut();
-				} else {
-					if(selectedIndex != -1) {
-						if(i != selectedIndex)
-							continue;
-					}
-					cc.isSelected = true;
-					selectedIndex = i;
-					inSelectionMode = true;
-					
-					isZoomToFront = true;
-					cc.pushTransitionOntoQueueAndStart(
-							new Transition(
-									new float[]{cc.x,cc.y,cc.z}, 
-									new float[]{0.0f, 0.0f, Z_DEPTH}, 
-									300, acdcIntp, cc.yRot, 0.0f)
-					);
-					
-					radialMenu.setStartStop(cc.x, cc.y, cc.z);
-					radialMenu.toggleInOut();
-					radialMenu.isVisible = true;
-					
-				}
-			} else {
-				Log.i("Selection", "Not selected: " + cc.name + " at winX: " + cc.winX + ", winY: "+ cc.winY);
-			}
-		}
+		// New code. render a full frame to the back buffer. Do color checking.
+		 //GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, mFramebuffer);
+//		 renderSolid = true;
+//		 GLES20.glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+//		 GLES20.glClear( GLES20.GL_DEPTH_BUFFER_BIT | GLES20.GL_COLOR_BUFFER_BIT);
+//		 //renderSwipe();
+//		 try {
+//			Thread.sleep(500L);
+//		} catch (InterruptedException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+//		 renderSolid = false;
+		 
+//		byte b[] = new byte[4];
+//		ByteBuffer pixels = ByteBuffer.allocateDirect(4);
+//		pixels.order(ByteOrder.nativeOrder());
+// 
+//		 GLES20.glReadPixels(winX, Y_SIZE - winY, 1, 1, GLES20.GL_RGBA,
+//				 GLES20.GL_UNSIGNED_BYTE, pixels);
+//		 Log.i(TAG, "Data::: " + pixels.get(0)); // + " " + fb.getFloat(2) + " " + fb.getFloat(3));
+		 //GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
 		return -1;
+//		float fDistance = 6.0f;
+//		float winZ = (1.0f/fNear-1.0f/fDistance)/(1.0f/fNear-1.0f/fFar);
+//		float[] xyz = get3DCoordsFrom2D(winX, winY, -0.99f);
+//		//float[] xyz2 = get3DCoordsFrom2D(winX, winY, 20);
+//		Log.i(TAG, "3D coordinate: " + xyz[0] + "," + xyz[1] + "," + xyz[2]);
+//		//Log.i(TAG, "3D/2 coordinate: " + xyz2[0] + "," + xyz2[1] + "," + xyz2[2]);
+//		ArrayList<Intersection> intersects = new ArrayList<Intersection>();
+//		
+//		// If showing radialmenu, test selection for those first.
+//		
+//		if(radialMenu.isVisible) {
+//			if(radialMenu.inTransition()) {
+//				return -1;
+//			}
+//			 int selectedIconIndex = radialMenu.testSelect(winX, winY);
+//			 if(selectedIconIndex > -1) {
+//				 if(selectedIconIndex == 0 || selectedIconIndex == 1) {
+//					 radialMenu.execute(selectedIconIndex, contactCards[selectedIndex].id);
+//				 }				
+//				 return 1;
+//			 }
+//		 }
+//		
+//		// If we're currently in a transition, break selection.
+//		
+//		
+//		for (int i = 0; i < contactCards.length; i++) {
+//			
+//			
+//			
+//			ContactCard cc = contactCards[i];
+//			if(cc.name.startsWith("Alexander B")) {
+//				Log.i(TAG, "3D " + cc.x + "," + cc.y + "," + cc.z);
+//			}
+////			Line.intersectPlane(intersects, new Float3(xyz), new Float3(xyz2), new Float3(cc.x-1.0f, cc.y-1.0f, cc.z), new Float3(cc.x+1.0f, cc.y-1.0f, cc.z), new Float3(cc.x+1.0f, cc.y+1.0f, cc.z));
+////			Log.i(TAG, "Intersects: " + intersects.size());
+//			if(cc == null) {
+//				continue;
+//			}
+//			if(cc.winX > X_SIZE || cc.winX < 0 || cc.currentTransition != null && cc.currentTransition.timeOfStart != 0)
+//				continue;
+//			if (checkSelection(winX, winY, cc)) {
+//				Log.i("Selection", "Selected: " + cc.name + " at winX: " + cc.winX + ", winY: "+ cc.winY);
+//				
+//				// if already selected...unselect..
+//				if(cc.isSelected) {					
+//					isZoomToBack = true;		
+//					cc.popTransition();
+//					radialMenu.toggleInOut();
+//				} else {
+//					if(selectedIndex != -1) {
+//						if(i != selectedIndex)
+//							continue;
+//					}
+//					cc.isSelected = true;
+//					selectedIndex = i;
+//					inSelectionMode = true;
+//					
+//					isZoomToFront = true;
+//					cc.pushTransitionOntoQueueAndStart(
+//							new Transition(
+//									new float[]{cc.x,cc.y,cc.z}, 
+//									new float[]{0.0f, 0.0f, Z_DEPTH}, 
+//									300, acdcIntp, cc.yRot, 0.0f)
+//					);
+//					
+//					radialMenu.setStartStop(cc.x, cc.y, cc.z);
+//					radialMenu.toggleInOut();
+//					radialMenu.isVisible = true;
+//					
+//				}
+//			} else {
+//				Log.i("Selection", "Not selected: " + cc.name + " at winX: " + cc.winX + ", winY: "+ cc.winY);
+//			}
+//		}
+//		return -1;
 	}
 
 	
@@ -672,8 +742,8 @@ public class ContactCardsRenderer implements GLSurfaceView.Renderer{
 	 * @see nu.epsilon.swipebook.IContactCardRenderer#testSelectLongClick(int, int)
 	 */
 	public void testSelectLongClick(int winX, int winY) {
-		for (int i = 0; i < this.contactCards.length; i++) {
-			ContactCard cc = this.contactCards[i];
+		for (int i = 0; i < contactCards.length; i++) {
+			ContactCard cc = contactCards[i];
 			if(cc.winX > X_SIZE || cc.winX < 0 || cc.currentTransition != null && cc.currentTransition.timeOfStart != 0)
 				continue;
 			if (checkSelection(winX, winY, cc)) {
@@ -792,6 +862,17 @@ public class ContactCardsRenderer implements GLSurfaceView.Renderer{
 		case SwipeActivity.ROTATE:
 			isRotating = true;
 			break;
+		case SwipeActivity.SOLID:
+			renderSolid = !renderSolid;
+			break;
 		}
 	}
+	
+	private static void checkGlError(String op) {
+        int error;
+        while ((error = GLES20.glGetError()) != GLES20.GL_NO_ERROR) {
+            Log.e(TAG, op + ": glError " + error);
+            throw new RuntimeException(op + ": glError " + error);
+        }
+    }
 }

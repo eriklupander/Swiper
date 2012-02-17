@@ -12,7 +12,15 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 
-
+/**
+ * Loads phone numbers for a specified contact and presents these
+ * on a 2D-overlay.
+ * 
+ * Selecting a phone number launches the Android Dialer.
+ * 
+ * @author Erik
+ *
+ */
 public class LaunchDial implements Command {
 	
 	

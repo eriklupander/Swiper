@@ -4,6 +4,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 
+/**
+ * Launches the ACTION_EDIT intent.
+ * @author Erik
+ *
+ */
 public class LaunchEditContact implements Command {
 	
 	private final static String EDIT_CONTACT_21_URI = "content://com.android.contacts/raw_contacts/";

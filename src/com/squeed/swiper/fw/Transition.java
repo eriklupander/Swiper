@@ -61,7 +61,8 @@ public class Transition {
 	}
 	
 	/**
-	 * Constructs the most basic Transition: From a to b, linear movement, set duration. 
+	 * Constructs the most basic Transition: From a to b, linear movement, set duration. But adds
+	 * an animation interpolator. {@link Interpolator}
 	 * 
 	 * @param fromXYZ
 	 * @param toXYZ

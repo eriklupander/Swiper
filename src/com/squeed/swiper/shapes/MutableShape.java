@@ -1,11 +1,12 @@
 package com.squeed.swiper.shapes;
 
+import java.nio.FloatBuffer;
 import java.util.LinkedList;
 import java.util.Queue;
 
-import com.squeed.swiper.fw.Transition;
-
 import android.util.Log;
+
+import com.squeed.swiper.fw.Transition;
 
 public abstract class MutableShape {
 	
@@ -18,11 +19,16 @@ public abstract class MutableShape {
 	public float y = 0.0f;
 	public float z = 0.0f;
 	
-	//public float xRot = 0.0f;
+	public float xRot = 0.0f;
 	public float yRot = 0.0f;
-	//public float zRot = 0.0f;
+	public float zRot = 0.0f;
 	
-	public int textureIndex;
+	/**
+	 * Reference to the OpenGL texture id.
+	 */
+	public int textureId;
+	
+	public FloatBuffer verticesBuffer;
 	
 	private Queue<Transition> transitionQueue = new LinkedList<Transition>();
 	public Transition currentTransition = null;

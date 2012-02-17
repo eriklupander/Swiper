@@ -23,8 +23,13 @@ import android.graphics.RectF;
 import android.opengl.GLES20;
 import android.opengl.GLUtils;
 
+/**
+ * Creates texture images using input bitmap image + some non-fancy canvas drawing.
+ * 
+ * @author Erik
+ *
+ */
 public class TextureLoader {
-
 	
 	private static int bgTexture[] = new int[1];
 	
@@ -74,7 +79,16 @@ public class TextureLoader {
 		return new BgQuad(bgTexture);
 	}		
 	
-	
+	/**
+	 * This method rescales the specified bitmap into a width/height that are power-of-two.
+	 * 
+	 * This is because OpenGL generally dislikes non-uniform texture sizes.
+	 * 
+	 * @param bm
+	 * @param newWidth
+	 * @param newHeight
+	 * @return
+	 */
 	public static Bitmap rescaleBitmapToPOT(Bitmap bm, int newWidth, int newHeight) {
 		int x = bm.getWidth();
 		int y = bm.getHeight();
@@ -114,10 +128,10 @@ public class TextureLoader {
 		p2.setColor(Color.WHITE);
 		p2.setAntiAlias(true);
 		p2.setAlpha(0x90);
-		RectF rectF = new RectF(0, y - 15, x, y + 1);
-		c.drawRoundRect(rectF, 15.0f, 15.0f, p2);
+		RectF rectF = new RectF(0, y - 25, x, y + 1);
+		c.drawRect(rectF, p2); // RoundRect(rectF, 15.0f, 15.0f, p2);
 //
-		if(!border) {
+		//if(!border) {
 			Paint p3 = new Paint();
 			p3.setColor(Color.WHITE);
 			p3.setStrokeWidth(15);
@@ -127,7 +141,7 @@ public class TextureLoader {
 			c.drawLine(x, 0, x, y, p3);
 			c.drawLine(x, y, 0, y, p3);
 			c.drawLine(0, y, 0, 0, p3);
-		}
+		//}
 //		
 		Paint p = new Paint();
 		p.setAntiAlias(true);		
@@ -136,7 +150,7 @@ public class TextureLoader {
 		p.setTextSize(12);
 		p.setTextAlign(Paint.Align.CENTER);
 		Paint.FontMetrics fm = p.getFontMetrics();
-		c.drawText(string, x / 2, (y - fm.ascent) / 1.12f , p);		
+		c.drawText(string, x / 2, (y - fm.ascent - 10) / 1.12f , p);		
 	}
 	
 	public static Bitmap drawContactCardBitmap2(Bitmap bm, String string, boolean border) {
@@ -182,40 +196,5 @@ public class TextureLoader {
 	
 		return tmpBitmap;
 	}
-//
-//	public static Bitmap createPersonDetailTexture(String[] personDetails) {
-//		int x = 128;
-//		int y = 128;
-//		Bitmap bm = Bitmap.createBitmap(x, y, Bitmap.Config.RGB_565);
-//		Canvas c = new Canvas(bm);
-//		
-//		Paint p3 = new Paint();
-//		p3.setColor(Color.RED);
-//		p3.setStrokeWidth(4);
-//		p3.setAntiAlias(true);
-//
-//		c.drawLine(0, 0, x, 0, p3);
-//		c.drawLine(x, 0, x, y, p3);
-//		c.drawLine(x, y, 0, y, p3);
-//		c.drawLine(0, y, 0, 0, p3);
-//		
-//		Paint p = new Paint();
-//		p.setAntiAlias(true);
-//		p.setColor(Color.WHITE);
-//		//p.setAlpha(0x90);
-//
-//		p.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC));
-//		p.setTextSize(12);
-//		p.setTextAlign(Paint.Align.CENTER);
-//		Paint.FontMetrics fm = p.getFontMetrics();
-//		c.drawText(personDetails[1], 4, (30 + fm.ascent), p);
-//		
-//		if(personDetails[4] != null) {
-//			p.setTextSize(8);
-//			fm = p.getFontMetrics();
-//			c.drawText(personDetails[4], 4, (60 + fm.ascent), p);
-//		}
-//		
-//		return bm;
-//	}
+
 }

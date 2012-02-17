@@ -3,34 +3,53 @@ package com.squeed.swiper.shader;
 import android.opengl.GLES20;
 import android.util.Log;
 
+/**
+ * This class holds some shader code and boilerplate code to load them.
+ * 
+ * This makes it really simple to switch between shaders in onDrawFrame()
+ * 
+ * Example: GLES20.glUseProgram(Shaders.mProgram);
+ * 
+ * @author Erik
+ *
+ */
 public class Shaders {
 	
+	public static Shader defaultShader;
+	public static PulseShader pulseShader;
+	public static ReflectionShader reflectionShader;
+	public static PulseReflectionShader pulseReflectionShader;	
+	public static ColorShader colorShader;
+	
 	/** Start of handles to vertix/pixel shader programs and 'variables' **/
-	public static int mProgram;
-    public static int mProgramReflection;
-    public static int mProgramPulse;
-    public static int mProgramPulseReflection;
+	//public static int mProgram;
+   // public static int mProgramReflection;
+   // public static int mProgramPulse;
+    //public static int mProgramPulseReflection;
 
-    public static  int muMVPMatrixHandle;
-    public static  int maPositionHandle;
-    public static  int maTextureHandle;
+    //public static  int muMVPMatrixHandle;
+    //public static  int maPositionHandle;
+    //public static  int maTextureHandle;
     
-    public static  int muMVPMatrixHandleReflection;
-    public static  int maPositionHandleReflection;
-    public static  int maTextureHandleReflection;
-    public static  int maReflectionAmount;
+//    public static  int muMVPMatrixHandleReflection;
+//    public static  int maPositionHandleReflection;
+//    public static  int maTextureHandleReflection;
+//    public static  int maReflectionAmount;
 	
-    public static  int muMVPMatrixHandlePulse;
-    public static  int maPositionHandlePulse;
-    public static  int maTextureHandlePulse;
-    public static  int maTimeHandlePulse;
+//    public static  int muMVPMatrixHandlePulse;
+//    public static  int maPositionHandlePulse;
+//    public static  int maTextureHandlePulse;
+//    public static  int maTimeHandlePulse;
     
-    public static  int muMVPMatrixHandlePulseReflection;
-    public static  int maPositionHandlePulseReflection;
-    public static  int maTextureHandlePulseReflection;
-    public static  int maTimeHandlePulseReflection;
-    public static  int maReflectionPulseAmount;
+//    public static  int muMVPMatrixHandlePulseReflection;
+//    public static  int maPositionHandlePulseReflection;
+//    public static  int maTextureHandlePulseReflection;
+//    public static  int maTimeHandlePulseReflection;
+//    public static  int maReflectionPulseAmount;
 	
+    /**
+     * The standard vertex shader. This mimics the behaviour of the OpenGL ES 1.0 static vertex pipeline.
+     */
 	public static final String mVertexShader =
         "uniform mat4 uMVPMatrix;\n" +
         "attribute vec4 aPosition;\n" +
@@ -41,6 +60,32 @@ public class Shaders {
         "  vTextureCoord = aTextureCoord;\n" +
         "}\n";
 	
+	
+	/**
+     * The color vertex shader. E.g. no texture coordinate
+     */
+	public static final String mColorVertexShader =
+        "uniform mat4 uMVPMatrix;\n" +
+        "attribute vec4 aPosition;\n" +     
+        "void main() {\n" +       
+        "  gl_Position = uMVPMatrix * aPosition;\n" +
+        "}\n";
+	
+	/**
+	 * The color only pixel shader
+	 */
+	public static final String mColorFragmentShader =
+        "precision mediump float;\n" +   
+        "uniform float color;\n" +
+        "void main() {\n" +
+        "  gl_FragColor = vec4(color, color, color, 1.0);\n" +
+        "}\n";
+	
+	
+	/**
+	 * The vertex "pulsing" shader. Uses a sin function and a feeded "time"  in order to
+	 * change the z-value based on the x-value.
+	 */
 	public static final String mVertexShaderPulse =		
 		"uniform mat4 uMVPMatrix;\n" +
         "attribute vec4 aPosition;\n" +
@@ -54,7 +99,9 @@ public class Shaders {
         "  vTextureCoord = aTextureCoord;\n" +
         "}\n";
 	
-
+	/**
+	 * The standard pixel shader, mimics the OpenGL ES 1.0 static pipeline.
+	 */
 	public static final String mFragmentShader =
         "precision mediump float;\n" +
         "varying vec2 vTextureCoord;\n" +
@@ -62,7 +109,14 @@ public class Shaders {
         "void main() {\n" +
         "  gl_FragColor = texture2D(sTexture, vTextureCoord);\n" +	        
         "}\n";
+	
+	
+	
     
+	/**
+	 * A more advanced pixel shader used to render the reflection effect. The texture coordinate
+	 * is used to set a decreasing alpha value for the pixel.
+	 */
 	public static final String mFragmentShaderReflection =
     	"precision mediump float;\n" +
         "varying vec2 vTextureCoord;\n" +
@@ -77,58 +131,92 @@ public class Shaders {
 	
 	
 	public static void initDefaultShader() {
-		mProgram = createProgram(Shaders.mVertexShader, Shaders.mFragmentShader);
+		
+		int mProgram = createProgram(Shaders.mVertexShader, Shaders.mFragmentShader);
         if (mProgram == 0) {
         	throw new RuntimeException("Could not create default shader");	            
         }
-        maPositionHandle = GLES20.glGetAttribLocation(mProgram, "aPosition");
+        int maPositionHandle = GLES20.glGetAttribLocation(mProgram, "aPosition");
         checkGlError("glGetAttribLocation aPosition");
         if (maPositionHandle == -1) {
             throw new RuntimeException("Could not get attrib location for aPosition");
         }
-        maTextureHandle = GLES20.glGetAttribLocation(mProgram, "aTextureCoord");
+        int maTextureHandle = GLES20.glGetAttribLocation(mProgram, "aTextureCoord");
         checkGlError("glGetAttribLocation aTextureCoord");
         if (maTextureHandle == -1) {
             throw new RuntimeException("Could not get attrib location for aTextureCoord");
         }
 
-        muMVPMatrixHandle = GLES20.glGetUniformLocation(mProgram, "uMVPMatrix");
+        int muMVPMatrixHandle = GLES20.glGetUniformLocation(mProgram, "uMVPMatrix");
         checkGlError("glGetUniformLocation uMVPMatrix");
         if (muMVPMatrixHandle == -1) {
             throw new RuntimeException("Could not get attrib location for uMVPMatrix");
         }
+        
+        defaultShader = new Shader(mProgram, "Default Shader", muMVPMatrixHandle, maPositionHandle, maTextureHandle);
+	}
+	
+	
+	public static void initColorShader() {
+		
+		int mProgram = createProgram(Shaders.mColorVertexShader, Shaders.mColorFragmentShader);
+        if (mProgram == 0) {
+        	throw new RuntimeException("Could not create default shader");	            
+        }
+        int positionHandle = GLES20.glGetAttribLocation(mProgram, "aPosition");
+        checkGlError("glGetAttribLocation aPosition");
+        if (positionHandle == -1) {
+            throw new RuntimeException("Could not get attrib location for aPosition");
+        }        
+
+        int uMVPMatrixHandle = GLES20.glGetUniformLocation(mProgram, "uMVPMatrix");
+        checkGlError("glGetUniformLocation uMVPMatrix");
+        if (uMVPMatrixHandle == -1) {
+            throw new RuntimeException("Could not get attrib location for uMVPMatrix");
+        }
+        
+        int colorHandle = GLES20.glGetUniformLocation(mProgram, "color");
+        checkGlError("glGetUniformLocation time");
+        if (colorHandle == -1) {
+            throw new RuntimeException("Could not get attrib location for time");
+        }
+        
+        colorShader = new ColorShader(mProgram, "Color Shader", uMVPMatrixHandle, positionHandle, colorHandle);
 	}
 	
 	/**
 	 * Uses the standard vertex program, but the reflection pixel shader
 	 */
 	public static void initReflectionShader() {
-		mProgramReflection = createProgram(Shaders.mVertexShader, Shaders.mFragmentShaderReflection);
+
+		int mProgramReflection = createProgram(Shaders.mVertexShader, Shaders.mFragmentShaderReflection);
         if (mProgramReflection == 0) {
         	throw new RuntimeException("Could not create reflection pixel shader");	            
         }
-        maPositionHandleReflection = GLES20.glGetAttribLocation(mProgramReflection, "aPosition");
+        int maPositionHandleReflection = GLES20.glGetAttribLocation(mProgramReflection, "aPosition");
         checkGlError("glGetAttribLocation aPosition");
         if (maPositionHandleReflection == -1) {
             throw new RuntimeException("Could not get attrib location for aPosition");
         }
-        maTextureHandleReflection = GLES20.glGetAttribLocation(mProgramReflection, "aTextureCoord");
+        int maTextureHandleReflection = GLES20.glGetAttribLocation(mProgramReflection, "aTextureCoord");
         checkGlError("glGetAttribLocation aTextureCoord");
         if (maTextureHandleReflection == -1) {
             throw new RuntimeException("Could not get attrib location for aTextureCoord");
         }
 
-        muMVPMatrixHandleReflection = GLES20.glGetUniformLocation(mProgramReflection, "uMVPMatrix");
+        int muMVPMatrixHandleReflection = GLES20.glGetUniformLocation(mProgramReflection, "uMVPMatrix");
         checkGlError("glGetUniformLocation uMVPMatrix");
         if (muMVPMatrixHandleReflection == -1) {
             throw new RuntimeException("Could not get attrib location for uMVPMatrix");
         }
         
-        maReflectionAmount = GLES20.glGetUniformLocation(mProgramReflection, "amount");
+        int maReflectionAmount = GLES20.glGetUniformLocation(mProgramReflection, "amount");
         checkGlError("glGetUniformLocation amount");
         if (maReflectionAmount == -1) {
             throw new RuntimeException("Could not get attrib location for amount");
         }
+        
+        reflectionShader = new ReflectionShader(mProgramReflection, "Reflection Shader", muMVPMatrixHandleReflection, maPositionHandleReflection, maTextureHandleReflection, maReflectionAmount);
 	}
 	
 	
@@ -137,71 +225,75 @@ public class Shaders {
 	 * For the pulsating contact cards, uses the pulsating vertex shader, the normal pixel shader
 	 */
 	public static void initPulseShader() {
-		mProgramPulse = createProgram(Shaders.mVertexShaderPulse, Shaders.mFragmentShader);
+		int mProgramPulse = createProgram(Shaders.mVertexShaderPulse, Shaders.mFragmentShader);
         if (mProgramPulse == 0) {
         	throw new RuntimeException("Could not create pulse vertex shader");
             //return;
         }
-        maPositionHandlePulse = GLES20.glGetAttribLocation(mProgramPulse, "aPosition");
+        int maPositionHandlePulse = GLES20.glGetAttribLocation(mProgramPulse, "aPosition");
         checkGlError("glGetAttribLocation aPosition");
         if (maPositionHandlePulse == -1) {
             throw new RuntimeException("Could not get attrib location for aPosition");
         }
-        maTextureHandlePulse = GLES20.glGetAttribLocation(mProgramPulse, "aTextureCoord");
+        int maTextureHandlePulse = GLES20.glGetAttribLocation(mProgramPulse, "aTextureCoord");
         checkGlError("glGetAttribLocation aTextureCoord");
         if (maTextureHandlePulse == -1) {
             throw new RuntimeException("Could not get attrib location for aTextureCoord");
         }
 
-        muMVPMatrixHandlePulse = GLES20.glGetUniformLocation(mProgramPulse, "uMVPMatrix");
+        int muMVPMatrixHandlePulse = GLES20.glGetUniformLocation(mProgramPulse, "uMVPMatrix");
         checkGlError("glGetUniformLocation uMVPMatrix");
         if (muMVPMatrixHandlePulse == -1) {
             throw new RuntimeException("Could not get attrib location for uMVPMatrix");
         }
         
-        maTimeHandlePulse = GLES20.glGetUniformLocation(mProgramPulse, "time");
+        int maTimeHandlePulse = GLES20.glGetUniformLocation(mProgramPulse, "time");
         checkGlError("glGetUniformLocation time");
         if (maTimeHandlePulse == -1) {
             throw new RuntimeException("Could not get attrib location for time");
         }
+        
+        pulseShader = new PulseShader(mProgramPulse, "Pulse Shader", muMVPMatrixHandlePulse, maPositionHandlePulse, maTextureHandlePulse, maTimeHandlePulse);
 	}
 	
 	/**
 	 * Program for the pulsating reflection, uses the pulsating vertex shader, the reflection pixel shader
 	 */
 	public static void initPulseReflectionShader() {
-		mProgramPulseReflection = createProgram(Shaders.mVertexShaderPulse, Shaders.mFragmentShaderReflection);
+		int mProgramPulseReflection = createProgram(Shaders.mVertexShaderPulse, Shaders.mFragmentShaderReflection);
         if (mProgramPulseReflection == 0) {
             return;
         }
-        maPositionHandlePulseReflection = GLES20.glGetAttribLocation(mProgramPulseReflection, "aPosition");
+        int maPositionHandlePulseReflection = GLES20.glGetAttribLocation(mProgramPulseReflection, "aPosition");
         checkGlError("glGetAttribLocation aPosition");
         if (maPositionHandlePulseReflection == -1) {
             throw new RuntimeException("Could not get attrib location for aPosition");
         }
-        maTextureHandlePulseReflection = GLES20.glGetAttribLocation(mProgramPulseReflection, "aTextureCoord");
+        int maTextureHandlePulseReflection = GLES20.glGetAttribLocation(mProgramPulseReflection, "aTextureCoord");
         checkGlError("glGetAttribLocation aTextureCoord");
         if (maTextureHandlePulseReflection == -1) {
             throw new RuntimeException("Could not get attrib location for aTextureCoord");
         }
 
-        muMVPMatrixHandlePulseReflection = GLES20.glGetUniformLocation(mProgramPulseReflection, "uMVPMatrix");
+        int muMVPMatrixHandlePulseReflection = GLES20.glGetUniformLocation(mProgramPulseReflection, "uMVPMatrix");
         checkGlError("glGetUniformLocation uMVPMatrix");
         if (muMVPMatrixHandlePulseReflection == -1) {
             throw new RuntimeException("Could not get attrib location for uMVPMatrix");
         }
         
-        maTimeHandlePulseReflection = GLES20.glGetUniformLocation(mProgramPulseReflection, "time");
+        int maTimeHandlePulseReflection = GLES20.glGetUniformLocation(mProgramPulseReflection, "time");
         checkGlError("glGetUniformLocation time");
         if (maTimeHandlePulseReflection == -1) {
             throw new RuntimeException("Could not get attrib location for time");
         }
         
-        maReflectionPulseAmount = GLES20.glGetUniformLocation(mProgramPulseReflection, "amount");
+        int maReflectionPulseAmount = GLES20.glGetUniformLocation(mProgramPulseReflection, "amount");
         checkGlError("glGetUniformLocation amount");
         if (maReflectionPulseAmount == -1) {
             throw new RuntimeException("Could not get attrib location for amount");
         }
+        
+        pulseReflectionShader = new PulseReflectionShader(mProgramPulseReflection, "Pulse Reflection Shader", muMVPMatrixHandlePulseReflection, maPositionHandlePulseReflection, maTextureHandlePulseReflection, maTimeHandlePulseReflection, maReflectionPulseAmount);
 	}
 	
 

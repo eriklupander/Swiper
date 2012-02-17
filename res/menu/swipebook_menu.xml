@@ -18,4 +18,7 @@
     <item android:id="@+id/rotate"
           android:icon="@drawable/icon"
           android:title="Rotate 360" />
+    <item android:id="@+id/solid"
+          android:icon="@drawable/icon"
+          android:title="Draw solid colors" />
 </menu>
