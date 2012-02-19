@@ -15,6 +15,7 @@ import java.io.InputStream;
 import javax.microedition.khronos.opengles.GL10;
 
 import android.content.Context;
+import android.content.res.Resources.NotFoundException;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -28,10 +29,10 @@ import android.opengl.GLES20;
 import android.opengl.GLUtils;
 import android.util.Log;
 
-import com.squeed.swiper.ContactCardsRenderer;
 import com.squeed.swiper.R;
 import com.squeed.swiper.shapes.BgQuad;
 import com.squeed.swiper.shapes.ContactCard;
+import com.squeed.swiper.shapes.NumberQuad;
 
 /**
  * Creates texture images using input bitmap image + some non-fancy canvas drawing.
@@ -42,13 +43,15 @@ import com.squeed.swiper.shapes.ContactCard;
 public class TextureLoader {
 	
 	private static int bgTexture[] = new int[1];
+	private static int numbersTexture[] = new int[1];
+	
 	
 	public static int setupCardTexture(GL10 gl, Context context, ContactCard contactCard, int[] textureIDs, int currentTextureIndex) {
 		if(contactCard == null)
 			return currentTextureIndex;
 		Log.i("CNT", "Creating texture for " + contactCard.name);
 
-		GLES20.glBindTexture(GL_TEXTURE_2D, ContactCardsRenderer.textureIDs[currentTextureIndex]);
+		GLES20.glBindTexture(GL_TEXTURE_2D, textureIDs[currentTextureIndex]);
 
 		GLES20.glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		GLES20.glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -97,6 +100,28 @@ public class TextureLoader {
 		bm.recycle();
 		contactCard.textureId = textureIDs[currentTextureIndex++];
 		return currentTextureIndex;
+	}
+	
+	public static NumberQuad loadNumbersTexture(GL10 gl, Context mContext) {		
+		
+		GLES20.glGenTextures(1, numbersTexture, 0);
+		GLES20.glBindTexture(GL_TEXTURE_2D, numbersTexture[0]);
+
+		GLES20.glTexParameterf(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_MIN_FILTER,
+				GL10.GL_NEAREST);
+		GLES20.glTexParameterf(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_MAG_FILTER,
+				GL10.GL_LINEAR);
+		InputStream is = null;
+		try {
+			is = mContext.getResources().openRawResource(
+					R.drawable.numbermap2);
+			Bitmap bmp = BitmapFactory.decodeStream(is);
+			GLUtils.texImage2D(GL_TEXTURE_2D, 0, bmp, 0);
+			bmp.recycle();
+			return new NumberQuad(numbersTexture);
+		} finally {
+			try {is.close();} catch (IOException e) {}
+		}
 	}
 	
 	public static BgQuad loadBackgroundTexture(GL10 gl, Context mContext) {

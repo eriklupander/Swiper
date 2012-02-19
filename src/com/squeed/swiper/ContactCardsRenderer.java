@@ -19,6 +19,7 @@ import android.view.animation.OvershootInterpolator;
 
 import com.squeed.swiper.composites.RadialMenu;
 import com.squeed.swiper.fw.FrameBufferFactory;
+import com.squeed.swiper.fw.NumberRenderer;
 import com.squeed.swiper.fw.ObjectRenderer;
 import com.squeed.swiper.fw.TextRenderer;
 import com.squeed.swiper.fw.Transition;
@@ -27,6 +28,7 @@ import com.squeed.swiper.helper.TextureLoader;
 import com.squeed.swiper.shader.Shaders;
 import com.squeed.swiper.shapes.BgQuad;
 import com.squeed.swiper.shapes.ContactCard;
+import com.squeed.swiper.shapes.NumberQuad;
 import com.squeed.swiper.util.MathHelper;
 
 /**
@@ -68,6 +70,7 @@ public class ContactCardsRenderer implements GLSurfaceView.Renderer{
 		
 		private static RadialMenu radialMenu;
 		private static BgQuad bgQuad;
+		private static NumberQuad numberQuad;
 		
 		private boolean isZoomToFront = false;
 		private boolean isZoomToBack = false;
@@ -148,6 +151,7 @@ public class ContactCardsRenderer implements GLSurfaceView.Renderer{
 		 // FPS counter related.
 		 private int frames = 0;
 		 private long startTime = 0L;
+		private float fps;
 
 		 
 		public void onDrawFrame(GL10 gl) {
@@ -194,18 +198,20 @@ public class ContactCardsRenderer implements GLSurfaceView.Renderer{
 	
 			frames++;
 			if(frames == 150) {
-				float fps = 150.0f / ((System.currentTimeMillis() - startTime)/1000.0f);
+				fps = 150.0f / ((System.currentTimeMillis() - startTime)/1000.0f);
 				
 				
 				Log.i("FPS", "150 frames took : " + (System.currentTimeMillis() - startTime) + " ms to render, which means " + fps + " fps");
 				frames = 0;
 			}
-
+			
 			// Test render some text...
-			textRenderer.render(0.0f, 4.5f, 0.5f, "Swiper Phonebook", Shaders.defaultShader);
+			//textRenderer.render(0.0f, 4.5f, 0.5f, "Swiper Phonebook", Shaders.defaultShader);
+			numberRenderer.renderNumber(-2.0f, -4.5f, 0.5f, 0f, 0f, 0f, ("" + time), numberQuad.numbersTexture[0]);
 		}
 
 		TextRenderer textRenderer = new TextRenderer();
+		NumberRenderer numberRenderer = new NumberRenderer();
 		
 		private void renderBackground() {
 			GLES20.glUseProgram(Shaders.defaultShader.program);
@@ -222,12 +228,6 @@ public class ContactCardsRenderer implements GLSurfaceView.Renderer{
 				return;
 			
 			ContactCard cc = contactCards[selectedIndex];		
-			
-//			if(cc.selectedTextureId == -1 && cc.detailBitmap != null) {
-//				createTextureOnTheFly(gl, selectedIndex, cc);
-//			}
-			
-			setCurrentTexture(selectedIndex, true);
 			
 			if(isZoomToFront) {
 				cc.applyTransition();
@@ -334,12 +334,6 @@ public class ContactCardsRenderer implements GLSurfaceView.Renderer{
 				cc.z = Z_DEPTH - (Math.abs(cc.x) / 2);
 				cc.yRot = cc.x * 9.0f;
 				
-				//Log.i("TAG", "Z_DEPTH: " + Z_DEPTH);
-
-				
-				// Get corresponding 2D x/y coords
-				winCoords = get2DCoordsFrom3D(cc.x, cc.y, cc.z);
-				
 				// The most crude occlusion culling ever...
 				if(cc.x < -5 || cc.x > 5) {					
 					continue;
@@ -365,8 +359,7 @@ public class ContactCardsRenderer implements GLSurfaceView.Renderer{
 						renderer.renderReflection(cc, Shaders.pulseReflectionShader, new int[]{Shaders.pulseReflectionShader.time, Shaders.pulseReflectionShader.amount}, new float[]{time, amount}, 2.1f, -1.0f);
 					}
 				}
-			}
-			
+			}			
 		}
 
 	
@@ -385,12 +378,13 @@ public class ContactCardsRenderer implements GLSurfaceView.Renderer{
 		private int[] viewport3 = null;
 		private float fNear = 1.0f;
 		private float fFar = 20.0f;
+		public static int[] numbersTexture = new int[1];
+		
 		
 		private float[] get2DCoordsFrom3D(float x, float y, float z) {					
 			
 			GLU.gluProject(x, y, z, mMMatrix, 0,
 					mProjMatrix, 0, viewport3, 0, obj, 0);
-
 			return obj;
 		}
 		
@@ -470,12 +464,14 @@ public class ContactCardsRenderer implements GLSurfaceView.Renderer{
 
 		private void setupTextures(GL10 gl) {
 			
-			bgQuad = TextureLoader.loadBackgroundTexture(gl, mContext);
+			bgQuad = 		TextureLoader.loadBackgroundTexture(gl, mContext);
+			numberQuad = 	TextureLoader.loadNumbersTexture(gl, mContext);
 			
-			GLES20.glGenTextures(contactCards.length, textureIDs, 0);
+			GLES20.glGenTextures(contactCards.length+1, textureIDs, 0);
 			for (int a = 0; a < contactCards.length; a++) {
 				currentTextureIndex = TextureLoader.setupCardTexture(gl, mContext, contactCards[a], textureIDs, currentTextureIndex);
 			}
+			
 		}
 
 
@@ -485,8 +481,7 @@ public class ContactCardsRenderer implements GLSurfaceView.Renderer{
 
 		public static int mTargetTexture;
 		private int mFramebuffer;
-        private int mFramebufferWidth = 480;
-        private int mFramebufferHeight = 800;
+
 		
 	/* (non-Javadoc)
 	 * @see nu.epsilon.swipebook.IContactCardRenderer#testSelect(int, int)
@@ -498,20 +493,20 @@ public class ContactCardsRenderer implements GLSurfaceView.Renderer{
 
 		// THIS WORKS!!!
 		GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, mFramebuffer);
-
 	    GLES20.glClear( GLES20.GL_DEPTH_BUFFER_BIT | GLES20.GL_COLOR_BUFFER_BIT);
-		renderSolid = true;
+		
+	    renderSolid = true;
+		
 		setViewPort(X_SIZE/8, Y_SIZE/8);
 		renderSwipe();
 		
 		renderSolid = false;
-		ByteBuffer pixelBuffer = ByteBuffer.allocateDirect(1 * 1 * 4).order(ByteOrder.nativeOrder());
 	    GLES20.glReadPixels(winX/8, Y_SIZE/8-winY/8, 1, 1, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, pixelBuffer);
 	    setViewPort(X_SIZE, Y_SIZE);
 	    GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
 	    
 	    
-	    Log.i(TAG, "Data:" + pixelBuffer.get(0) + "," + pixelBuffer.get(1) + "," + pixelBuffer.get(2) +"," + pixelBuffer.get(3));
+	    //Log.i(TAG, "Data:" + pixelBuffer.get(0) + "," + pixelBuffer.get(1) + "," + pixelBuffer.get(2) +"," + pixelBuffer.get(3));
 	    int index = (int) pixelBuffer.get(0);
 	    if(index > 0) {
 	    	selectedIndex = index - 1;
