@@ -1,16 +1,5 @@
 package com.squeed.swiper;
 
-import static android.opengl.GLES10.GL_CLAMP_TO_EDGE;
-import static android.opengl.GLES10.GL_LINEAR;
-import static android.opengl.GLES10.GL_NEAREST;
-import static android.opengl.GLES10.GL_TEXTURE_2D;
-import static android.opengl.GLES10.GL_TEXTURE_MAG_FILTER;
-import static android.opengl.GLES10.GL_TEXTURE_MIN_FILTER;
-import static android.opengl.GLES10.GL_TEXTURE_WRAP_S;
-import static android.opengl.GLES10.GL_TEXTURE_WRAP_T;
-
-import java.io.IOException;
-import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
@@ -19,12 +8,9 @@ import javax.microedition.khronos.opengles.GL10;
 
 import android.app.Activity;
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.opengl.GLU;
-import android.opengl.GLUtils;
 import android.opengl.Matrix;
 import android.util.Log;
 import android.view.animation.AccelerateDecelerateInterpolator;
@@ -34,6 +20,7 @@ import android.view.animation.OvershootInterpolator;
 import com.squeed.swiper.composites.RadialMenu;
 import com.squeed.swiper.fw.FrameBufferFactory;
 import com.squeed.swiper.fw.ObjectRenderer;
+import com.squeed.swiper.fw.TextRenderer;
 import com.squeed.swiper.fw.Transition;
 import com.squeed.swiper.helper.MatrixLogger;
 import com.squeed.swiper.helper.TextureLoader;
@@ -208,12 +195,18 @@ public class ContactCardsRenderer implements GLSurfaceView.Renderer{
 			frames++;
 			if(frames == 150) {
 				float fps = 150.0f / ((System.currentTimeMillis() - startTime)/1000.0f);
+				
+				
 				Log.i("FPS", "150 frames took : " + (System.currentTimeMillis() - startTime) + " ms to render, which means " + fps + " fps");
 				frames = 0;
 			}
 
+			// Test render some text...
+			textRenderer.render(0.0f, 4.5f, 0.5f, "Swiper Phonebook", Shaders.defaultShader);
 		}
 
+		TextRenderer textRenderer = new TextRenderer();
+		
 		private void renderBackground() {
 			GLES20.glUseProgram(Shaders.defaultShader.program);
 			bgQuad.draw();
