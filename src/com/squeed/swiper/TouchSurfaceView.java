@@ -44,16 +44,20 @@ public class TouchSurfaceView extends GLSurfaceView {
 
 	private void setInitialPositionsForCards(ContactCard[] contacts) {
 		
-		int colorIdx = 1;
-		
+		int colorIndex = 0x000000;
+		colorIndex = colorIndex + 16;
 		for (int i = 0; i < contacts.length; i++) {
 			if(contacts[i] != null) {
 				contacts[i].x = i * 2.5f;
 				contacts[i].y = 0.0f;
 				contacts[i].z = -2.0f - (Math.abs(i * 2.5f) / 2);
 				contacts[i].yRot = 0.0f;
-				contacts[i].colorIndex = colorIdx;
-				colorIdx += 1;
+				//contacts[i].colorIndex = (0x000000 + colorIdx);
+				contacts[i].colorIndex[0] = ((colorIndex>>16)&0x0ff)/255.0f;
+				contacts[i].colorIndex[1] = ((colorIndex>>8) &0x0ff)/255.0f;
+				contacts[i].colorIndex[2] = ((colorIndex)    &0x0ff)/255.0f;
+				colorIndex = colorIndex + 16;
+				Log.i("Colors", "Set: " + contacts[i].colorIndex[0] + " " + contacts[i].colorIndex[1] + " " + contacts[i].colorIndex[2]);
 			}
 		}
 	}
@@ -107,15 +111,16 @@ public class TouchSurfaceView extends GLSurfaceView {
 	}
 	
 	private boolean handleTouchEventInSelectionMode(MotionEvent e, final float x, final float y) {
+		dumpEvent(e);
 		switch (e.getAction()) {		
 			case MotionEvent.ACTION_DOWN:
-				dumpEvent(e);
+				
 				break;
 			case MotionEvent.ACTION_MOVE:
 				
 				break;
 			case MotionEvent.ACTION_UP:
-				dumpEvent(e);
+				
 				queueEvent(new Runnable() {
 					public void run() {
 						mRenderer.testSelect((int)x, (int)y);
@@ -123,7 +128,7 @@ public class TouchSurfaceView extends GLSurfaceView {
 				});
 				return true;
 		}
-		return false;
+		return true;
 	}
 	
 	private int clickIndex = 0;

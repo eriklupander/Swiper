@@ -1,7 +1,15 @@
 package com.squeed.swiper.shader;
 
+
+import java.io.IOException;
+import java.io.InputStream;
+
+import android.content.res.Resources.NotFoundException;
 import android.opengl.GLES20;
 import android.util.Log;
+
+import com.squeed.swiper.ContactCardsRenderer;
+import com.squeed.swiper.R;
 
 /**
  * This class holds some shader code and boilerplate code to load them.
@@ -25,65 +33,56 @@ public class Shaders {
     /**
      * The standard vertex shader. This mimics the behaviour of the OpenGL ES 1.0 static vertex pipeline.
      */
-	public static final String mVertexShader =
-        "uniform mat4 uMVPMatrix;\n" +
-        "attribute vec4 aPosition;\n" +
-        "attribute vec2 aTextureCoord;\n" +
-        "varying vec2 vTextureCoord;\n" +
-        "void main() {\n" +
-        "  gl_Position = uMVPMatrix * aPosition;\n" +
-        "  vTextureCoord = aTextureCoord;\n" +
-        "}\n";
+//	public static final String mVertexShader =
+//        "uniform mat4 uMVPMatrix;\n" +
+//        "attribute vec4 aPosition;\n" +
+//        "attribute vec2 aTextureCoord;\n" +        
+//        "varying vec2 vTextureCoord;\n" +
+//        "void main() {\n" +
+//        "  gl_Position = uMVPMatrix * aPosition;\n" +
+//        "  vTextureCoord = aTextureCoord;\n" +
+//        "}\n";
 	
-	
-	/**
-     * The color vertex shader. E.g. no texture coordinate
-     */
-	public static final String mColorVertexShader =
-        "uniform mat4 uMVPMatrix;\n" +
-        "attribute vec4 aPosition;\n" +     
-        "void main() {\n" +       
-        "  gl_Position = uMVPMatrix * aPosition;\n" +
-        "}\n";
+
 	
 	/**
 	 * The color only pixel shader
 	 */
-	public static final String mColorFragmentShader =
-        "precision mediump float;\n" +   
-        "uniform float color;\n" +
-        "void main() {\n" +
-        "  gl_FragColor = vec4(color, 0.1, 0.1, 1.0);\n" +
-        "}\n";
+//	public static final String mColorFragmentShader =
+//        "precision mediump float;\n" +   
+//        "uniform float color;\n" +
+//        "void main() {\n" +
+//        "  gl_FragColor = vec4(color, 0.1, 0.1, 1.0);\n" +
+//        "}\n";
 	
 	
-	/**
-	 * The vertex "pulsing" shader. Uses a sin function and a feeded "time"  in order to
-	 * change the z-value based on the x-value.
-	 */
-	public static final String mVertexShaderPulse =		
-		"uniform mat4 uMVPMatrix;\n" +
-        "attribute vec4 aPosition;\n" +
-        "attribute vec2 aTextureCoord;\n" +
-        "varying vec2 vTextureCoord;\n" +
-        "uniform float time;\n" +
-        "void main() {\n" +
-        "  vec4 v = vec4(aPosition);\n" +
-        "  v.z = sin(5.0*v.x + time*0.01)*0.25;\n" +
-        "  gl_Position = uMVPMatrix * v;\n" +
-        "  vTextureCoord = aTextureCoord;\n" +
-        "}\n";
+//	/**
+//	 * The vertex "pulsing" shader. Uses a sin function and a feeded "time"  in order to
+//	 * change the z-value based on the x-value.
+//	 */
+//	public static final String mVertexShaderPulse =		
+//		"uniform mat4 uMVPMatrix;\n" +
+//        "attribute vec4 aPosition;\n" +
+//        "attribute vec2 aTextureCoord;\n" +
+//        "varying vec2 vTextureCoord;\n" +
+//        "uniform float time;\n" +
+//        "void main() {\n" +
+//        "  vec4 v = vec4(aPosition);\n" +
+//        "  v.z = sin(5.0*v.x + time*0.01)*0.25;\n" +
+//        "  gl_Position = uMVPMatrix * v;\n" +
+//        "  vTextureCoord = aTextureCoord;\n" +
+//        "}\n";
 	
-	/**
-	 * The standard pixel shader, mimics the OpenGL ES 1.0 static pipeline.
-	 */
-	public static final String mFragmentShader =
-        "precision mediump float;\n" +
-        "varying vec2 vTextureCoord;\n" +
-        "uniform sampler2D sTexture;\n" +
-        "void main() {\n" +
-        "  gl_FragColor = texture2D(sTexture, vTextureCoord);\n" +	        
-        "}\n";
+//	/**
+//	 * The standard pixel shader, mimics the OpenGL ES 1.0 static pipeline.
+//	 */
+//	public static final String mFragmentShader =
+//        "precision mediump float;\n" +
+//        "varying vec2 vTextureCoord;\n" +
+//        "uniform sampler2D sTexture;\n" +
+//        "void main() {\n" +
+//        "  gl_FragColor = texture2D(sTexture, vTextureCoord);\n" +	        
+//        "}\n";
 	
 	
 	
@@ -92,35 +91,39 @@ public class Shaders {
 	 * A more advanced pixel shader used to render the reflection effect. The texture coordinate
 	 * is used to set a decreasing alpha value for the pixel.
 	 */
-	public static final String mFragmentShaderReflection =
-    	"precision mediump float;\n" +
-        "varying vec2 vTextureCoord;\n" +
-        "uniform sampler2D sTexture;\n" +
-        "uniform float amount;\n" +
-        "void main() {\n" +
-        "  vec4 color = texture2D(sTexture, vTextureCoord);\n" +
-        "  color[3] = ((vTextureCoord[1])/amount)-0.07;\n" +
-        "  gl_FragColor = color;\n" +
-        "}\n";
+//	public static final String mFragmentShaderReflection =
+//    	"precision mediump float;\n" +
+//        "varying vec2 vTextureCoord;\n" +
+//        "uniform sampler2D sTexture;\n" +
+//        "uniform float amount;\n" +
+//        "void main() {\n" +
+//        "  vec4 color = texture2D(sTexture, vTextureCoord);\n" +
+//        "  color[3] = ((vTextureCoord[1])/amount)-0.07;\n" +
+//        "  gl_FragColor = color;\n" +
+//        "}\n";
 	private static final String TAG = null;
 	
 	
 	public static void initDefaultShader() {
+		String vertexShaderSrc = loadShaderFromResource(R.raw.default_vertex_shader);
+		String fragmentShaderSrc = loadShaderFromResource(R.raw.default_fragment_shader);
 		
-		int mProgram = createProgram(Shaders.mVertexShader, Shaders.mFragmentShader);
+		int mProgram = createProgram(vertexShaderSrc, fragmentShaderSrc, new String[]{"aPosition", "aTextureCoord"});
         if (mProgram == 0) {
         	throw new RuntimeException("Could not create default shader");	            
-        }
+        }        
+        
         int maPositionHandle = GLES20.glGetAttribLocation(mProgram, "aPosition");
         checkGlError("glGetAttribLocation aPosition");
         if (maPositionHandle == -1) {
             throw new RuntimeException("Could not get attrib location for aPosition");
         }
+        
         int maTextureHandle = GLES20.glGetAttribLocation(mProgram, "aTextureCoord");
         checkGlError("glGetAttribLocation aTextureCoord");
         if (maTextureHandle == -1) {
             throw new RuntimeException("Could not get attrib location for aTextureCoord");
-        }
+        }      
 
         int muMVPMatrixHandle = GLES20.glGetUniformLocation(mProgram, "uMVPMatrix");
         checkGlError("glGetUniformLocation uMVPMatrix");
@@ -128,15 +131,34 @@ public class Shaders {
             throw new RuntimeException("Could not get attrib location for uMVPMatrix");
         }
         
-        defaultShader = new Shader(mProgram, "Default Shader", muMVPMatrixHandle, maPositionHandle, maTextureHandle);
+        defaultShader = new Shader(mProgram, "Default Shader", muMVPMatrixHandle, maPositionHandle, maTextureHandle, -1);
 	}
 	
 	
-	public static void initColorShader() {
+	private static String loadShaderFromResource(int resourceId) {
+		try {
+			InputStream is = ContactCardsRenderer.mContext.getResources().openRawResource(resourceId);
+			byte[] buffer = new byte[is.available()];   
+			is.read(buffer);  
+			return new String(buffer);
+		} catch (NotFoundException e) {
+			Log.e("Shaders", "NotFoundException loading shader: " + e.getMessage());
+			throw new RuntimeException(e.getMessage());
+		} catch (IOException e) {
+			Log.e("Shaders", "IOException loading shader: " + e.getMessage());
+			throw new RuntimeException(e.getMessage());
+		}
 		
-		int mProgram = createProgram(Shaders.mColorVertexShader, Shaders.mColorFragmentShader);
+	}
+
+
+	public static void initColorShader() {
+		String vertexShaderSrc = loadShaderFromResource(R.raw.color_vertex_shader);
+		String fragmentShaderSrc = loadShaderFromResource(R.raw.color_fragment_shader);
+		
+		int mProgram = createProgram(vertexShaderSrc, fragmentShaderSrc, new String[]{"aPosition", "rgb"});
         if (mProgram == 0) {
-        	throw new RuntimeException("Could not create default shader");	            
+        	throw new RuntimeException("Could not create color shader");	            
         }
         int positionHandle = GLES20.glGetAttribLocation(mProgram, "aPosition");
         checkGlError("glGetAttribLocation aPosition");
@@ -150,10 +172,10 @@ public class Shaders {
             throw new RuntimeException("Could not get attrib location for uMVPMatrix");
         }
         
-        int colorHandle = GLES20.glGetUniformLocation(mProgram, "color");
-        checkGlError("glGetUniformLocation time");
+        int colorHandle = GLES20.glGetUniformLocation(mProgram, "rgb");
+        checkGlError("glGetUniformLocation rgb");
         if (colorHandle == -1) {
-            throw new RuntimeException("Could not get attrib location for time");
+            throw new RuntimeException("Could not get attrib location for rgb");
         }
         
         colorShader = new ColorShader(mProgram, "Color Shader", uMVPMatrixHandle, positionHandle, colorHandle);
@@ -163,8 +185,13 @@ public class Shaders {
 	 * Uses the standard vertex program, but the reflection pixel shader
 	 */
 	public static void initReflectionShader() {
-
-		int mProgramReflection = createProgram(Shaders.mVertexShader, Shaders.mFragmentShaderReflection);
+		String vertexShaderSrc = loadShaderFromResource(R.raw.default_vertex_shader);
+		String fragmentShaderSrc = loadShaderFromResource(R.raw.reflection_fragment_shader);
+		
+		int mProgramReflection = createProgram(vertexShaderSrc, fragmentShaderSrc, 
+				new String[]{"aPosition", "aTextureCoord", "amount"}
+		);
+		
         if (mProgramReflection == 0) {
         	throw new RuntimeException("Could not create reflection pixel shader");	            
         }
@@ -200,10 +227,11 @@ public class Shaders {
 	 * For the pulsating contact cards, uses the pulsating vertex shader, the normal pixel shader
 	 */
 	public static void initPulseShader() {
-		int mProgramPulse = createProgram(Shaders.mVertexShaderPulse, Shaders.mFragmentShader);
+		String vertexShaderSrc = loadShaderFromResource(R.raw.pulse_vertex_shader);
+		String fragmentShaderSrc = loadShaderFromResource(R.raw.default_fragment_shader);
+		int mProgramPulse = createProgram(vertexShaderSrc, fragmentShaderSrc, new String[]{"aPosition", "aTextureCoord", "time"});
         if (mProgramPulse == 0) {
         	throw new RuntimeException("Could not create pulse vertex shader");
-            //return;
         }
         int maPositionHandlePulse = GLES20.glGetAttribLocation(mProgramPulse, "aPosition");
         checkGlError("glGetAttribLocation aPosition");
@@ -227,15 +255,18 @@ public class Shaders {
         if (maTimeHandlePulse == -1) {
             throw new RuntimeException("Could not get attrib location for time");
         }
-        
-        pulseShader = new PulseShader(mProgramPulse, "Pulse Shader", muMVPMatrixHandlePulse, maPositionHandlePulse, maTextureHandlePulse, maTimeHandlePulse);
+                
+        pulseShader = new PulseShader(mProgramPulse, "Pulse Shader", muMVPMatrixHandlePulse, maPositionHandlePulse, maTextureHandlePulse, -1, maTimeHandlePulse);
 	}
 	
 	/**
 	 * Program for the pulsating reflection, uses the pulsating vertex shader, the reflection pixel shader
 	 */
 	public static void initPulseReflectionShader() {
-		int mProgramPulseReflection = createProgram(Shaders.mVertexShaderPulse, Shaders.mFragmentShaderReflection);
+		String vertexShaderSrc = loadShaderFromResource(R.raw.pulse_vertex_shader);
+		String fragmentShaderSrc = loadShaderFromResource(R.raw.reflection_fragment_shader);
+		
+		int mProgramPulseReflection = createProgram(vertexShaderSrc, fragmentShaderSrc, new String[]{"aPosition", "aTextureCoord", "time", "amount"});
         if (mProgramPulseReflection == 0) {
             return;
         }
@@ -289,7 +320,7 @@ public class Shaders {
         return shader;
     }
 
-    private static int createProgram(String vertexSource, String fragmentSource) {
+    private static int createProgram(String vertexSource, String fragmentSource, String[] attributes) {
         int vertexShader = loadShader(GLES20.GL_VERTEX_SHADER, vertexSource);
         if (vertexShader == 0) {
             return 0;
@@ -300,23 +331,32 @@ public class Shaders {
             return 0;
         }
 
-        int program = GLES20.glCreateProgram();
-        if (program != 0) {
-            GLES20.glAttachShader(program, vertexShader);
+        int programHandle = GLES20.glCreateProgram();
+        if (programHandle != 0) {
+            GLES20.glAttachShader(programHandle, vertexShader);
             checkGlError("glAttachShader");
-            GLES20.glAttachShader(program, pixelShader);
+            GLES20.glAttachShader(programHandle, pixelShader);
             checkGlError("glAttachShader");
-            GLES20.glLinkProgram(program);
+            
+			// Bind attributes
+//			if (attributes != null) {
+//				final int size = attributes.length;
+//				for (int i = 0; i < size; i++) {
+//					GLES20.glBindAttribLocation(programHandle, i, attributes[i]);
+//				}
+//			}
+            
+            GLES20.glLinkProgram(programHandle);
             int[] linkStatus = new int[1];
-            GLES20.glGetProgramiv(program, GLES20.GL_LINK_STATUS, linkStatus, 0);
+            GLES20.glGetProgramiv(programHandle, GLES20.GL_LINK_STATUS, linkStatus, 0);
             if (linkStatus[0] != GLES20.GL_TRUE) {
                 Log.e(TAG, "Could not link program: ");
-                Log.e(TAG, GLES20.glGetProgramInfoLog(program));
-                GLES20.glDeleteProgram(program);
-                program = 0;
+                Log.e(TAG, GLES20.glGetProgramInfoLog(programHandle));
+                GLES20.glDeleteProgram(programHandle);
+                programHandle = 0;
             }
         }
-        return program;
+        return programHandle;
     }
     
     private static void checkGlError(String op) {

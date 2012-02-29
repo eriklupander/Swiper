@@ -64,6 +64,7 @@ public class SwipeActivity extends Activity {
 	public static final int DEC_REFL = 4;
 	public static final int ROTATE = 5;
 	public static final int SOLID = 6;
+	public static final int ROTATE_TO_FRONT = 7;
 
 	@Override
 	protected void onResume() {
@@ -154,6 +155,9 @@ public class SwipeActivity extends Activity {
 	        return true;
 	    case R.id.solid:
 	    	mGLSurfaceView.toggle(SOLID);
+	        return true;
+	    case R.id.rotateToFront:
+	    	mGLSurfaceView.toggle(ROTATE_TO_FRONT);
 	        return true;
 	    default:
 	        return super.onOptionsItemSelected(item);

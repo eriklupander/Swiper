@@ -37,6 +37,11 @@ public class Shader {
      */
     public int mTextureHandle;
     
+    /**
+     * Handle used to feed texture coordinate data to the shader. (?) check
+     */
+    public int mNormalHandle;
+    
 	
 
 	public Shader(int program, String name, int mMVPMatrixHandle,
@@ -55,6 +60,17 @@ public class Shader {
 		this.mMVPMatrixHandle = mMVPMatrixHandle;
 		this.mPositionHandle = mPositionHandle;
 		this.mTextureHandle = mTextureHandle;
+	}
+	
+	public Shader(int program, String name, int mMVPMatrixHandle, int mPositionHandle,
+			int mTextureHandle, int mNormalHandle) {
+		super();
+		this.program = program;
+		this.name = name;
+		this.mMVPMatrixHandle = mMVPMatrixHandle;
+		this.mPositionHandle = mPositionHandle;
+		this.mTextureHandle = mTextureHandle;
+		this.mNormalHandle = mNormalHandle;
 	}
     
 }

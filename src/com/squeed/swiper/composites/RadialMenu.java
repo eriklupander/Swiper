@@ -7,15 +7,6 @@ import java.io.InputStream;
 
 import javax.microedition.khronos.opengles.GL10;
 
-import com.squeed.swiper.ContactCardsRenderer;
-import com.squeed.swiper.R;
-import com.squeed.swiper.actions.LaunchDial;
-import com.squeed.swiper.actions.LaunchEditContact;
-import com.squeed.swiper.actions.MakeInvisible;
-import com.squeed.swiper.actions.MakeVisible;
-import com.squeed.swiper.fw.Transition;
-import com.squeed.swiper.shapes.IconQuad;
-
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -23,6 +14,17 @@ import android.opengl.GLES20;
 import android.opengl.GLUtils;
 import android.util.Log;
 import android.view.animation.AnticipateOvershootInterpolator;
+
+import com.squeed.swiper.ContactCardsRenderer;
+import com.squeed.swiper.R;
+import com.squeed.swiper.actions.LaunchDial;
+import com.squeed.swiper.actions.LaunchEditContact;
+import com.squeed.swiper.actions.MakeInvisible;
+import com.squeed.swiper.actions.MakeVisible;
+import com.squeed.swiper.fw.ObjectRenderer;
+import com.squeed.swiper.fw.Transition;
+import com.squeed.swiper.shader.Shaders;
+import com.squeed.swiper.shapes.IconQuad;
 
 /**
  * The radial menu is made up of (n) number of IconQuads, evenly distributed across 360 degrees.
@@ -33,16 +35,20 @@ import android.view.animation.AnticipateOvershootInterpolator;
  *
  */
 public class RadialMenu {
+	
 	private static final int MENU_SIZE = 4;
+	private static final int UI_COLOR_IDX_OFFSET = 0xFF0000;
 	private IconQuad[] menuItems;
 	private Context mContext;
 	
 	private float degreeSeparation = 0.0f;
 	public boolean isVisible = false;
+	private ObjectRenderer objectRenderer;
 	
 	
-	public RadialMenu(Context mContext) {
+	public RadialMenu(Context mContext, ObjectRenderer objectRenderer) {
 		this.mContext = mContext;
+		this.objectRenderer = objectRenderer;
 		menuItems = new IconQuad[MENU_SIZE];
 		this.degreeSeparation = 360 / MENU_SIZE;
 		
@@ -90,23 +96,32 @@ public class RadialMenu {
 	}
 
 	public void draw() {		
+		GLES20.glUseProgram(Shaders.defaultShader.program);
 		for(int a = 0; a < MENU_SIZE; a++) {
 			menuItems[a].applyTransition();
-			menuItems[a].draw();			
+			objectRenderer.render(menuItems[a].x, -menuItems[a].y, 5.5f, menuItems[a].xRot, menuItems[a].yRot, menuItems[a].zRot, menuItems[a].verticesBuffer, null, menuItems[a].textureId, Shaders.defaultShader, 1.0f);
+		}
+	}
+	
+	public void drawSelection() {		
+		GLES20.glUseProgram(Shaders.colorShader.program);
+		for(int a = 0; a < MENU_SIZE; a++) {
+			menuItems[a].applyTransition();
+			GLES20.glUniform3fv(Shaders.colorShader.colorHandle, 1, menuItems[a].colorIndex, 0); //glUniform1f(Shaders.colorShader.colorHandle, menuItems[a].colorIndex);
+			objectRenderer.renderSolidColor(menuItems[a].x, -menuItems[a].y, 5.5f, menuItems[a].xRot, menuItems[a].yRot, menuItems[a].zRot, menuItems[a].verticesBuffer, Shaders.colorShader);
 		}
 	}
 	
 	private void loadTextures() {
 		
-		GLES20.glGenTextures(MENU_SIZE + 1, ContactCardsRenderer.textureIDs, ContactCardsRenderer.currentTextureIndex);
+		GLES20.glGenTextures(MENU_SIZE, ContactCardsRenderer.textureIDs, ContactCardsRenderer.currentTextureIndex);
 
 		// Background highlight texture
-		GLES20.glBindTexture(GL_TEXTURE_2D, ContactCardsRenderer.textureIDs[ContactCardsRenderer.currentTextureIndex]); // I.e. last icon texture + 1
-		initTextureParams();
-		loadTexture(R.drawable.jog_dial_dimple);
+//		GLES20.glBindTexture(GL_TEXTURE_2D, ContactCardsRenderer.textureIDs[ContactCardsRenderer.currentTextureIndex]); // I.e. last icon texture + 1
+//		initTextureParams();
+//		loadTexture(R.drawable.jog_dial_dimple);
 		
-		IconQuad.highLightTextureIndex = ContactCardsRenderer.currentTextureIndex;
-		
+//		ContactCardsRenderer.currentTextureIndex++;
 		ContactCardsRenderer.currentTextureIndex++;
 		for(int a = 0;a < MENU_SIZE; a++) {
 			GLES20.glBindTexture(GL_TEXTURE_2D, ContactCardsRenderer.textureIDs[ContactCardsRenderer.currentTextureIndex]);
@@ -114,7 +129,7 @@ public class RadialMenu {
     
 			int resourceId = getIconOfIndex(a);
 			loadTexture(resourceId);
-			menuItems[a].textureId = ContactCardsRenderer.currentTextureIndex;
+			menuItems[a].textureId = ContactCardsRenderer.textureIDs[ContactCardsRenderer.currentTextureIndex];
 			
 			ContactCardsRenderer.currentTextureIndex++;
 		}
@@ -146,16 +161,16 @@ public class RadialMenu {
 	private IconQuad getIcon(int index) {
 		switch(index) {
 			case 0:
-				return new IconQuad(new LaunchDial(mContext));
+				return new IconQuad(new LaunchDial(mContext), UI_COLOR_IDX_OFFSET);
 			
 			case 1:
-				return new IconQuad(new LaunchEditContact(mContext));				
+				return new IconQuad(new LaunchEditContact(mContext), UI_COLOR_IDX_OFFSET+16);				
 		
 			case 2:
-				return new IconQuad(new MakeVisible());
+				return new IconQuad(new MakeVisible(), UI_COLOR_IDX_OFFSET+32);
 	
 			case 3:
-				return new IconQuad(new MakeInvisible());
+				return new IconQuad(new MakeInvisible(), UI_COLOR_IDX_OFFSET+48);
 		}
 		return null;
 	}
@@ -178,7 +193,7 @@ public class RadialMenu {
 	}
 	
 	
-	public static float distanceFromCenter = -1.0f;
+	
 	
 	
 	
@@ -187,18 +202,7 @@ public class RadialMenu {
 			Log.i("RadialMenu", "Executing command for icon " + iconIndex);
 			menuItems[iconIndex].actionWhenClicked.execute(params);
 		} else {
-			Log.i("RadialMenu", "Could not execute command for icon " + iconIndex + " no action defined");
-		}
-	}
-
-	public void setHighlightIcon(int selectedIconIndex, boolean isHighlighted) {
-		menuItems[selectedIconIndex].isHighlighted = isHighlighted;
-	}
-
-	public void resetHighlightIcon() {
-		for(int a = 0; a < MENU_SIZE; a++) {
-			if(menuItems[a].isHighlighted)
-				menuItems[a].isHighlighted = false;
+			Log.i("RadialMenu", "Could not execute command for icon " + iconIndex + ", no action defined");
 		}
 	}
 

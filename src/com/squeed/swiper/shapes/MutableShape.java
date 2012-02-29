@@ -33,6 +33,7 @@ public abstract class MutableShape {
 	public static final int TRIANGLE_VERTICES_DATA_STRIDE_BYTES = 5 * FLOAT_SIZE_BYTES;
 	public static final int TRIANGLE_VERTICES_DATA_POS_OFFSET = 0;
 	public static final int TRIANGLE_VERTICES_DATA_UV_OFFSET = 3;
+	public static final int TRIANGLE_NORMALS_DATA_SIZE = 3;
 	
 	public float x = 0.0f;
 	public float y = 0.0f;
@@ -47,7 +48,13 @@ public abstract class MutableShape {
 	 */
 	public int textureId;
 	
+	/**
+	 * Each contact shall have a unique color index assigned so we can perform color-based picking.
+	 */
+	public float[] colorIndex = new float[3];
+	
 	public FloatBuffer verticesBuffer;
+	public FloatBuffer normalsBuffer;
 	
 	private Queue<Transition> transitionQueue = new LinkedList<Transition>();
 	public Transition currentTransition = null;
@@ -75,7 +82,7 @@ public abstract class MutableShape {
 		if(currentTransition != null) {
 			currentTransition.reset();
 		} else {
-			Log.w("MutableShape", "Tried to pop transition, but failed. No transition on queue.");
+			Log.e("MutableShape", "Tried to pop transition, but failed. No transition on queue.");
 		}
 		//Log.i("MutableShape", "Popped " + currentTransition.name + " from queue. Queue has " + transitionQueue.size() + " items");
 	}

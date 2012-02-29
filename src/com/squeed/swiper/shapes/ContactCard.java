@@ -25,15 +25,11 @@ public class ContactCard extends MutableShape {
 	 * Name of the contact person.
 	 */
 	public String name;
-			
-	/**
-	 * Each contact shall have a unique color index assigned so we can perform color-based picking.
-	 */
-	public int colorIndex;
+	
 	
 	public Bitmap picture;
 //	public Bitmap detailBitmap;
-	public boolean isSelected = false;
+
 
 	// All contact cards share the same verticies and texture coords. Thus it's pretty OK 
 	// to make that data static.
@@ -43,6 +39,14 @@ public class ContactCard extends MutableShape {
     	1.0f, 1.0f, 0.0f, 1.0f, 0.0f,
     	-1.0f, -1.0f, 0.0f, 0.0f, 1.0f,
     	1.0f, -1.0f, 0.0f, 1.0f, 1.0f};
+    
+    private static float mNormalsData[] = {
+    	// X, Y, Z
+    	0.0f, 0.0f, 1.0f,
+    	0.0f, 0.0f, 1.0f,
+    	0.0f, 0.0f, 1.0f,
+    	0.0f, 0.0f, 1.0f
+    };
 	
 	public ContactCard(String id, String name, Bitmap picture)
     {
@@ -54,6 +58,11 @@ public class ContactCard extends MutableShape {
 		verticesBuffer = ByteBuffer.allocateDirect(mVerticesData.length
                 * FLOAT_SIZE_BYTES).order(ByteOrder.nativeOrder()).asFloatBuffer();
         verticesBuffer.put(mVerticesData).position(0);
+        
+        /********* START GL ES2.0 code **************/
+		normalsBuffer = ByteBuffer.allocateDirect(mNormalsData.length
+                * FLOAT_SIZE_BYTES).order(ByteOrder.nativeOrder()).asFloatBuffer();
+		normalsBuffer.put(mNormalsData).position(0);
     }
 	
 	

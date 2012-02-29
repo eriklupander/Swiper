@@ -114,8 +114,11 @@ public class TextureLoader {
 		InputStream is = null;
 		try {
 			is = mContext.getResources().openRawResource(
-					R.drawable.numbermap2);
+					R.drawable.numbers);
 			Bitmap bmp = BitmapFactory.decodeStream(is);
+			bmp = TextureLoader.rescaleBitmapToPOT(bmp, 128, 128);
+			int width = bmp.getWidth();
+            int height = bmp.getHeight();
 			GLUtils.texImage2D(GL_TEXTURE_2D, 0, bmp, 0);
 			bmp.recycle();
 			return new NumberQuad(numbersTexture);

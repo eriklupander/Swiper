@@ -21,4 +21,7 @@
     <item android:id="@+id/solid"
           android:icon="@drawable/icon"
           android:title="Draw solid colors" />
+    <item android:id="@+id/rotateToFront"
+          android:icon="@drawable/icon"
+          android:title="Rotate to front" />
 </menu>

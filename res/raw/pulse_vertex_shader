@@ -1,0 +1,11 @@
+uniform mat4 uMVPMatrix;
+attribute vec4 aPosition;
+attribute vec2 aTextureCoord;
+varying vec2 vTextureCoord;
+uniform float time;
+void main() {
+  vec4 v = vec4(aPosition);
+  v.z = sin(5.0*v.x + time*0.01)*0.25;
+  gl_Position = uMVPMatrix * v;
+  vTextureCoord = aTextureCoord;
+}

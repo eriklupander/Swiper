@@ -52,10 +52,10 @@ public class BgQuad extends MutableShape {
 
         GLES20.glEnableVertexAttribArray(Shaders.defaultShader.mTextureHandle);
 
-        Matrix.multiplyMM(ContactCardsRenderer.mMVPMatrix, 0, ContactCardsRenderer.mVMatrix, 0, ContactCardsRenderer.mMMatrix, 0);
-        Matrix.multiplyMM(ContactCardsRenderer.mMVPMatrix, 0, ContactCardsRenderer.mProjMatrix, 0, ContactCardsRenderer.mMVPMatrix, 0);
+        Matrix.multiplyMM(ContactCardsRenderer.mModelViewProjectionMatrix, 0, ContactCardsRenderer.mViewMatrix, 0, ContactCardsRenderer.mModelMatrix, 0);
+        Matrix.multiplyMM(ContactCardsRenderer.mModelViewProjectionMatrix, 0, ContactCardsRenderer.mProjectionMatrix, 0, ContactCardsRenderer.mModelViewProjectionMatrix, 0);
 
-        GLES20.glUniformMatrix4fv(Shaders.defaultShader.mMVPMatrixHandle, 1, false, ContactCardsRenderer.mMVPMatrix, 0);
+        GLES20.glUniformMatrix4fv(Shaders.defaultShader.mMVPMatrixHandle, 1, false, ContactCardsRenderer.mModelViewProjectionMatrix, 0);
         
         GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4);
 
