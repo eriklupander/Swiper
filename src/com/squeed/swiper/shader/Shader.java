@@ -28,6 +28,11 @@ public class Shader {
 	public int mMVPMatrixHandle;
 	
 	/**
+	 * Handle used to feed the ModelView matrix to the shader
+	 */
+	public int mMVMatrixHandle;
+	
+	/**
 	 * Handle used to feed vertex data to the shader
 	 */
     public int mPositionHandle;
@@ -41,36 +46,44 @@ public class Shader {
      * Handle used to feed texture coordinate data to the shader. (?) check
      */
     public int mNormalHandle;
-    
+
+    /**
+     * Handle to the light position.
+     */
+    public int mLightPosHandle;
 	
 
-	public Shader(int program, String name, int mMVPMatrixHandle,
+	public Shader(int program, String name, int mMVPMatrixHandle,  int mMVMatrixHandle,
 			int mPositionHandle) {
 		this.program = program;
 		this.name = name;
 		this.mMVPMatrixHandle = mMVPMatrixHandle;
+		this.mMVMatrixHandle = mMVMatrixHandle;
 		this.mPositionHandle = mPositionHandle;
 	}
     
-	public Shader(int program, String name, int mMVPMatrixHandle, int mPositionHandle,
+	public Shader(int program, String name, int mMVPMatrixHandle,  int mMVMatrixHandle, int mPositionHandle,
 			int mTextureHandle) {
 		super();
 		this.program = program;
 		this.name = name;
 		this.mMVPMatrixHandle = mMVPMatrixHandle;
+		this.mMVMatrixHandle = mMVMatrixHandle;
 		this.mPositionHandle = mPositionHandle;
 		this.mTextureHandle = mTextureHandle;
 	}
 	
-	public Shader(int program, String name, int mMVPMatrixHandle, int mPositionHandle,
-			int mTextureHandle, int mNormalHandle) {
+	public Shader(int program, String name, int mMVPMatrixHandle,  int mMVMatrixHandle, int mPositionHandle,
+			int mTextureHandle, int mNormalHandle, int mLightHandle) {
 		super();
 		this.program = program;
 		this.name = name;
 		this.mMVPMatrixHandle = mMVPMatrixHandle;
+		this.mMVMatrixHandle = mMVMatrixHandle;
 		this.mPositionHandle = mPositionHandle;
 		this.mTextureHandle = mTextureHandle;
 		this.mNormalHandle = mNormalHandle;
+		this.mLightPosHandle = mLightHandle;
 	}
     
 }

@@ -28,7 +28,7 @@ public class Shaders {
 	public static ReflectionShader reflectionShader;
 	public static PulseReflectionShader pulseReflectionShader;	
 	public static ColorShader colorShader;
-	
+	public static BasicTextureShader basicShader;
 	
     /**
      * The standard vertex shader. This mimics the behaviour of the OpenGL ES 1.0 static vertex pipeline.
@@ -103,12 +103,41 @@ public class Shaders {
 //        "}\n";
 	private static final String TAG = null;
 	
+	public static void initBasichader() {
+		String vertexShaderSrc = loadShaderFromResource(R.raw.basic_vertex_shader);
+		String fragmentShaderSrc = loadShaderFromResource(R.raw.basic_fragment_shader);
+		int mProgram = createProgram(vertexShaderSrc, fragmentShaderSrc, new String[]{"aPosition", "aTextureCoord"});
+		
+		if (mProgram == 0) {
+        	throw new RuntimeException("Could not create default shader");	            
+        }        
+        
+        int maPositionHandle = GLES20.glGetAttribLocation(mProgram, "aPosition");
+        checkGlError("glGetAttribLocation aPosition");
+        if (maPositionHandle == -1) {
+            throw new RuntimeException("Could not get attrib location for aPosition");
+        }
+        
+        int maTextureHandle = GLES20.glGetAttribLocation(mProgram, "aTextureCoord");
+        checkGlError("glGetAttribLocation aTextureCoord");
+        if (maTextureHandle == -1) {
+            throw new RuntimeException("Could not get attrib location for aTextureCoord");
+        }
+        
+        int muMVPMatrixHandle = GLES20.glGetUniformLocation(mProgram, "uMVPMatrix");
+        checkGlError("glGetUniformLocation uMVPMatrix");
+        if (muMVPMatrixHandle == -1) {
+            throw new RuntimeException("Could not get uniform location for uMVPMatrix");
+        }
+        basicShader = new BasicTextureShader(mProgram, "Default Shader", muMVPMatrixHandle, maPositionHandle, maTextureHandle);
+	}
+	
 	
 	public static void initDefaultShader() {
 		String vertexShaderSrc = loadShaderFromResource(R.raw.default_vertex_shader);
 		String fragmentShaderSrc = loadShaderFromResource(R.raw.default_fragment_shader);
-		
-		int mProgram = createProgram(vertexShaderSrc, fragmentShaderSrc, new String[]{"aPosition", "aTextureCoord"});
+
+		int mProgram = createProgram(vertexShaderSrc, fragmentShaderSrc, new String[]{"aPosition", "aTextureCoord", "aNormal"});
         if (mProgram == 0) {
         	throw new RuntimeException("Could not create default shader");	            
         }        
@@ -123,15 +152,32 @@ public class Shaders {
         checkGlError("glGetAttribLocation aTextureCoord");
         if (maTextureHandle == -1) {
             throw new RuntimeException("Could not get attrib location for aTextureCoord");
-        }      
-
+        }
+        
         int muMVPMatrixHandle = GLES20.glGetUniformLocation(mProgram, "uMVPMatrix");
         checkGlError("glGetUniformLocation uMVPMatrix");
         if (muMVPMatrixHandle == -1) {
-            throw new RuntimeException("Could not get attrib location for uMVPMatrix");
+            throw new RuntimeException("Could not get uniform location for uMVPMatrix");
         }
         
-        defaultShader = new Shader(mProgram, "Default Shader", muMVPMatrixHandle, maPositionHandle, maTextureHandle, -1);
+        int muMVMatrixHandle = GLES20.glGetUniformLocation(mProgram, "uMVMatrix");
+        checkGlError("glGetUniformLocation uMVMatrix");
+        if (muMVMatrixHandle == -1) {
+            throw new RuntimeException("Could not get uniform location for uMVMatrix");
+        }
+                
+        int maNormalHandle = GLES20.glGetAttribLocation(mProgram, "aNormal");
+        checkGlError("glGetAttribLocation aNormal");
+        if (maNormalHandle == -1) {
+            throw new RuntimeException("Could not get attrib location for aNormal");
+        }
+
+        int muLightPosHandle = GLES20.glGetUniformLocation(mProgram, "uLightPos");
+        checkGlError("glGetUniformLocation uLightPos");
+        if (muLightPosHandle == -1) {
+            throw new RuntimeException("Could not get uniform location for uLightPos");
+        }
+        defaultShader = new Shader(mProgram, "Default Shader", muMVPMatrixHandle, muMVMatrixHandle, maPositionHandle, maTextureHandle, maNormalHandle, muLightPosHandle);
 	}
 	
 	
@@ -147,8 +193,7 @@ public class Shaders {
 		} catch (IOException e) {
 			Log.e("Shaders", "IOException loading shader: " + e.getMessage());
 			throw new RuntimeException(e.getMessage());
-		}
-		
+		}		
 	}
 
 
@@ -205,11 +250,29 @@ public class Shaders {
         if (maTextureHandleReflection == -1) {
             throw new RuntimeException("Could not get attrib location for aTextureCoord");
         }
-
+        
+        int maNormalHandle = GLES20.glGetAttribLocation(mProgramReflection, "aNormal");
+        checkGlError("glGetAttribLocation aNormal");
+        if (maNormalHandle == -1) {
+            throw new RuntimeException("Could not get attrib location for aNormal");
+        }
+       
+        int muLightPosHandle = GLES20.glGetUniformLocation(mProgramReflection, "uLightPos");
+        checkGlError("glGetUniformLocation uLightPos");
+        if (muLightPosHandle == -1) {
+            throw new RuntimeException("Could not get uniform location for uLightPos");
+        }
+        
         int muMVPMatrixHandleReflection = GLES20.glGetUniformLocation(mProgramReflection, "uMVPMatrix");
         checkGlError("glGetUniformLocation uMVPMatrix");
         if (muMVPMatrixHandleReflection == -1) {
             throw new RuntimeException("Could not get attrib location for uMVPMatrix");
+        }
+        
+        int muMVMatrixHandle = GLES20.glGetUniformLocation(mProgramReflection, "uMVMatrix");
+        checkGlError("glGetUniformLocation uMVMatrix");
+        if (muMVMatrixHandle == -1) {
+            throw new RuntimeException("Could not get uniform location for uMVMatrix");
         }
         
         int maReflectionAmount = GLES20.glGetUniformLocation(mProgramReflection, "amount");
@@ -218,7 +281,7 @@ public class Shaders {
             throw new RuntimeException("Could not get attrib location for amount");
         }
         
-        reflectionShader = new ReflectionShader(mProgramReflection, "Reflection Shader", muMVPMatrixHandleReflection, maPositionHandleReflection, maTextureHandleReflection, maReflectionAmount);
+        reflectionShader = new ReflectionShader(mProgramReflection, "Reflection Shader", muMVPMatrixHandleReflection, muMVMatrixHandle, maPositionHandleReflection, maTextureHandleReflection, maReflectionAmount, maNormalHandle, muLightPosHandle);
 	}
 	
 	
@@ -250,13 +313,31 @@ public class Shaders {
             throw new RuntimeException("Could not get attrib location for uMVPMatrix");
         }
         
+        int muMVMatrixHandle = GLES20.glGetUniformLocation(mProgramPulse, "uMVMatrix");
+        checkGlError("glGetUniformLocation uMVMatrix");
+        if (muMVMatrixHandle == -1) {
+            throw new RuntimeException("Could not get uniform location for uMVMatrix");
+        }
+        
         int maTimeHandlePulse = GLES20.glGetUniformLocation(mProgramPulse, "time");
         checkGlError("glGetUniformLocation time");
         if (maTimeHandlePulse == -1) {
             throw new RuntimeException("Could not get attrib location for time");
         }
+        
+        int maNormalHandle = GLES20.glGetAttribLocation(mProgramPulse, "aNormal");
+        checkGlError("glGetAttribLocation aNormal");
+        if (maNormalHandle == -1) {
+            throw new RuntimeException("Could not get attrib location for aNormal");
+        }
+
+        int muLightPosHandle = GLES20.glGetUniformLocation(mProgramPulse, "uLightPos");
+        checkGlError("glGetUniformLocation uLightPos");
+        if (muLightPosHandle == -1) {
+            throw new RuntimeException("Could not get uniform location for uLightPos");
+        }
                 
-        pulseShader = new PulseShader(mProgramPulse, "Pulse Shader", muMVPMatrixHandlePulse, maPositionHandlePulse, maTextureHandlePulse, -1, maTimeHandlePulse);
+        pulseShader = new PulseShader(mProgramPulse, "Pulse Shader", muMVPMatrixHandlePulse, muMVMatrixHandle, maPositionHandlePulse, maTextureHandlePulse, maNormalHandle, maTimeHandlePulse, muLightPosHandle);
 	}
 	
 	/**
@@ -287,6 +368,12 @@ public class Shaders {
             throw new RuntimeException("Could not get attrib location for uMVPMatrix");
         }
         
+        int muMVMatrixHandle = GLES20.glGetUniformLocation(mProgramPulseReflection, "uMVMatrix");
+        checkGlError("glGetUniformLocation uMVMatrix");
+        if (muMVMatrixHandle == -1) {
+            throw new RuntimeException("Could not get uniform location for uMVMatrix");
+        }
+        
         int maTimeHandlePulseReflection = GLES20.glGetUniformLocation(mProgramPulseReflection, "time");
         checkGlError("glGetUniformLocation time");
         if (maTimeHandlePulseReflection == -1) {
@@ -299,7 +386,19 @@ public class Shaders {
             throw new RuntimeException("Could not get attrib location for amount");
         }
         
-        pulseReflectionShader = new PulseReflectionShader(mProgramPulseReflection, "Pulse Reflection Shader", muMVPMatrixHandlePulseReflection, maPositionHandlePulseReflection, maTextureHandlePulseReflection, maTimeHandlePulseReflection, maReflectionPulseAmount);
+        int maNormalHandle = GLES20.glGetAttribLocation(mProgramPulseReflection, "aNormal");
+        checkGlError("glGetAttribLocation aNormal");
+        if (maNormalHandle == -1) {
+            throw new RuntimeException("Could not get attrib location for aNormal");
+        }
+
+        int muLightPosHandle = GLES20.glGetUniformLocation(mProgramPulseReflection, "uLightPos");
+        checkGlError("glGetUniformLocation uLightPos");
+        if (muLightPosHandle == -1) {
+            throw new RuntimeException("Could not get uniform location for uLightPos");
+        }
+        
+        pulseReflectionShader = new PulseReflectionShader(mProgramPulseReflection, "Pulse Reflection Shader", muMVPMatrixHandlePulseReflection, muMVMatrixHandle, maPositionHandlePulseReflection, maTextureHandlePulseReflection, maTimeHandlePulseReflection, maReflectionPulseAmount, maNormalHandle, muLightPosHandle);
 	}
 	
 

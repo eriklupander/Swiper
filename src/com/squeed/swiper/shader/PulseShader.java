@@ -13,11 +13,10 @@ public class PulseShader extends Shader {
 	 */
 	public int timeHandle;
 
-	public PulseShader(int program, String name, int mMVPMatrixHandle,
-			int mPositionHandle, int mTextureHandle, int mNormalHandle, int timeHandle) {
-		super(program, name, mMVPMatrixHandle, mPositionHandle, mTextureHandle, mNormalHandle);
-		this.timeHandle = timeHandle;
-		
+	public PulseShader(int program, String name, int mMVPMatrixHandle, int mMVMatrixHandle,
+			int mPositionHandle, int mTextureHandle, int mNormalHandle, int timeHandle, int mLightPosHandle) {
+		super(program, name, mMVPMatrixHandle, mMVMatrixHandle, mPositionHandle, mTextureHandle, mNormalHandle, mLightPosHandle);
+		this.timeHandle = timeHandle;		
 	}
 
 }

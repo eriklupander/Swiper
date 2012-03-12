@@ -221,14 +221,14 @@ public class TextureLoader {
 		Paint p2 = new Paint();
 		p2.setColor(Color.WHITE);
 		p2.setAntiAlias(true);
-		p2.setAlpha(0x90);
-		RectF rectF = new RectF(0, y - 25, x, y + 1);
+		//p2.setAlpha(0x90);
+		RectF rectF = new RectF(0, y - 15, x, y + 1);
 		c.drawRect(rectF, p2); // RoundRect(rectF, 15.0f, 15.0f, p2);
 //
 		//if(!border) {
 			Paint p3 = new Paint();
 			p3.setColor(Color.WHITE);
-			p3.setStrokeWidth(15);
+			p3.setStrokeWidth(10);
 			p3.setAntiAlias(true);
 
 			c.drawLine(0, 0, x, 0, p3);
@@ -244,7 +244,7 @@ public class TextureLoader {
 		p.setTextSize(12);
 		p.setTextAlign(Paint.Align.CENTER);
 		Paint.FontMetrics fm = p.getFontMetrics();
-		c.drawText(string, x / 2, (y - fm.ascent - 10) / 1.12f , p);		
+		c.drawText(string, x / 2, (y - fm.ascent) / 1.12f , p);		
 	}
 	
 	public static Bitmap drawContactCardBitmap2(Bitmap bm, String string, boolean border) {
@@ -263,9 +263,10 @@ public class TextureLoader {
 		Paint p2 = new Paint();
 		p2.setColor(Color.WHITE);
 		p2.setAntiAlias(true);
-		p2.setAlpha(0x90);
+		//p2.setAlpha(0x90);
 		RectF rectF = new RectF(0, y - 15, x, y + 1);
-		c.drawRoundRect(rectF, 15.0f, 15.0f, p2);
+		//c.drawRoundRect(rectF, 15.0f, 15.0f, p2);
+		c.drawRect(rectF, p2);
 //
 		if(!border) {
 			Paint p3 = new Paint();

@@ -12,7 +12,7 @@ import android.net.Uri;
 public class LaunchEditContact implements Command {
 	
 	private final static String EDIT_CONTACT_21_URI = "content://com.android.contacts/raw_contacts/";
-	private final static String EDIT_CONTACT_16_URI = "content://contacts/people/";
+	//private final static String EDIT_CONTACT_16_URI = "content://contacts/people/";
 	
 	private Context context;	
 	
@@ -22,7 +22,7 @@ public class LaunchEditContact implements Command {
 
 	public void execute(Object... params) {
 		validateParameters(params);
-		this.context.startActivity(new Intent(Intent.ACTION_EDIT, Uri.parse(EDIT_CONTACT_16_URI + params[0])));
+		this.context.startActivity(new Intent(Intent.ACTION_EDIT, Uri.parse(EDIT_CONTACT_21_URI + params[0])));
 	}
 	
 	private void validateParameters(Object... params) {

@@ -6,9 +6,9 @@ public class PulseReflectionShader extends Shader {
 	public int amount;
 
 	public PulseReflectionShader(int program, String name,
-			int mMVPMatrixHandle, int mPositionHandle, int mTextureHandle, int time, int amount) {
-		super(program, name, mMVPMatrixHandle, mPositionHandle, mTextureHandle);
-		// TODO Auto-generated constructor stub
+			int mMVPMatrixHandle, int mMVMatrixHandle, int mPositionHandle, int mTextureHandle, int time, int amount, int mNormalHandle, int mLightPosHandle) {
+		super(program, name, mMVPMatrixHandle, mMVMatrixHandle, mPositionHandle, mTextureHandle, mNormalHandle, mLightPosHandle);
+
 		this.time = time;
 		this.amount = amount;
 	}

@@ -1,10 +1,8 @@
 package com.squeed.swiper;
 
-import javax.microedition.khronos.opengles.GL;
-
 import android.app.Activity;
-import android.opengl.GLSurfaceView;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -14,7 +12,6 @@ import android.widget.Button;
 
 import com.squeed.swiper.helper.ContactLoader;
 import com.squeed.swiper.shapes.ContactCard;
-import com.squeed.swiper.util.MatrixTrackingGL;
 
 /**
  * Starts the Swiper activity.
@@ -36,10 +33,8 @@ public class SwipeActivity extends Activity {
 		ContactCard[] contacts = new ContactLoader(this).loadContacts();
 		
 		mGLSurfaceView = new TouchSurfaceView(this, contacts);
-		mGLSurfaceView.setGLWrapper(new GLSurfaceView.GLWrapper() {			
-            public GL wrap(GL gl) {
-                return new MatrixTrackingGL(gl);
-            }});
+		initalizeContactCards(contacts);
+		
 		setContentView(mGLSurfaceView);
 		mGLSurfaceView.requestFocus();
 		mGLSurfaceView.setFocusableInTouchMode(true);	
@@ -56,13 +51,33 @@ public class SwipeActivity extends Activity {
 			return;
 		}
 	}
+	
+	private void initalizeContactCards(ContactCard[] contacts) {
+		
+		int colorIndex = 0x000000;
+		colorIndex = colorIndex + 16;
+		for (int i = 0; i < contacts.length; i++) {
+			if(contacts[i] != null) {
+				contacts[i].x = i * 2.5f;
+				contacts[i].y = 0.0f;
+				contacts[i].z = -2.0f - (Math.abs(i * 2.5f) / 2);
+				contacts[i].yRot = 0.0f;
+				
+				contacts[i].colorIndex[0] = ((colorIndex>>16)&0x0ff)/255.0f;
+				contacts[i].colorIndex[1] = ((colorIndex>>8) &0x0ff)/255.0f;
+				contacts[i].colorIndex[2] = ((colorIndex)    &0x0ff)/255.0f;
+
+				colorIndex = colorIndex + 16;
+				Log.i("Colors", "Set: " + contacts[i].colorIndex[0] + " " + contacts[i].colorIndex[1] + " " + contacts[i].colorIndex[2]);
+			}
+		}
+	}
 
 	public static final int REFLECTION = 0;
 	public static final int BACKGROUND = 1;
 	public static final int PULSE = 2;
 	public static final int INC_REFL = 3;
 	public static final int DEC_REFL = 4;
-	public static final int ROTATE = 5;
 	public static final int SOLID = 6;
 	public static final int ROTATE_TO_FRONT = 7;
 
@@ -88,7 +103,6 @@ public class SwipeActivity extends Activity {
 		
 		mGLSurfaceView.refreshContacts(contacts);
 		mGLSurfaceView.onResume();
-		
 	}
 
 
@@ -100,25 +114,9 @@ public class SwipeActivity extends Activity {
 		if(mGLSurfaceView != null)
 			mGLSurfaceView.onPause();
 	}
-		
-	
-//	public void onCreateContextMenu(ContextMenu menu, View v,
-//			ContextMenuInfo menuInfo) {
-//		super.onCreateContextMenu(menu, v, menuInfo);
-//		menu.add(0, 1, 0, "Edit");
-//		menu.add(0, 2, 0, "Delete");
-//	}
+
 
 	public boolean onContextItemSelected(MenuItem item) {
-//				.getMenuInfo();
-//		switch (item.getItemId()) {
-//			case 1:
-//				Log.i("CONTEXT-MENU", "(1)Info-ID");				
-//				break;
-//			case 2:
-//				Log.i("CONTEXT-MENU", "(2)Info-ID");
-//				break;
-//		}
 		mGLSurfaceView.bringToFront();
 		return super.onContextItemSelected(item);		
 	}
@@ -149,10 +147,7 @@ public class SwipeActivity extends Activity {
 	        return true;
 	    case R.id.dec_refl:
 	    	mGLSurfaceView.toggle(DEC_REFL);
-	        return true;
-	    case R.id.rotate:
-	    	mGLSurfaceView.toggle(ROTATE);
-	        return true;
+	        return true;	   
 	    case R.id.solid:
 	    	mGLSurfaceView.toggle(SOLID);
 	        return true;

@@ -13,6 +13,7 @@ import android.graphics.BitmapFactory;
 import android.opengl.GLES20;
 import android.opengl.GLUtils;
 import android.util.Log;
+import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.AnticipateOvershootInterpolator;
 
 import com.squeed.swiper.ContactCardsRenderer;
@@ -41,9 +42,12 @@ public class RadialMenu {
 	private IconQuad[] menuItems;
 	private Context mContext;
 	
+	/**
+	 * How many degrees in rotation separation. If four menu items, we'll want 90 degrees, for 6, 60 degrees.
+	 */
 	private float degreeSeparation = 0.0f;
 	public boolean isVisible = false;
-	private ObjectRenderer objectRenderer;
+	private ObjectRenderer objectRenderer;	
 	
 	
 	public RadialMenu(Context mContext, ObjectRenderer objectRenderer) {
@@ -62,12 +66,16 @@ public class RadialMenu {
 		}		
 	}
 	
+	public IconQuad[] getMenuItems() {
+		return menuItems;
+	}
 	
 	public void setStartStop(float startX, float startY, float startZ) {
 		float currentAngle = 0.0f;
-		final float[] startPos = new float[]{startX, startY, startZ};
+		final float[] startPos = new float[]{startX, startY, 1.0f};
 		
 		AnticipateOvershootInterpolator intp = new AnticipateOvershootInterpolator(1.5f);
+		AccelerateDecelerateInterpolator li = new AccelerateDecelerateInterpolator();
 		
 		for(int a = 0; a < MENU_SIZE; a++) {		
 			
@@ -75,14 +83,12 @@ public class RadialMenu {
 			float targetY = (float)Math.cos(Math.toRadians(currentAngle));
 			
 			// Add out transition			
-			final float[] stopPos = new float[]{targetX, targetY, -2.4f};
-			
-			//Log.i("RadialMenu", "Currrent angle: " + currentAngle + " menu items: Start: " + MatrixLogger.vector3ToString(startPos) + " Stop: " + MatrixLogger.vector3ToString(stopPos));
+			final float[] stopPos = new float[]{targetX, targetY, 5.5f};
 			
 			Transition outTransition = new Transition(startPos, stopPos, 500, intp);
 			menuItems[a].pushTransitionOntoQueue(outTransition);
 			
-			Transition inTransition = new Transition(stopPos, startPos, 500, intp);			
+			Transition inTransition = new Transition(stopPos, startPos, 500, li);			
 			menuItems[a].pushTransitionOntoQueue(inTransition);
 			
 			currentAngle+=degreeSeparation;
@@ -99,7 +105,7 @@ public class RadialMenu {
 		GLES20.glUseProgram(Shaders.defaultShader.program);
 		for(int a = 0; a < MENU_SIZE; a++) {
 			menuItems[a].applyTransition();
-			objectRenderer.render(menuItems[a].x, -menuItems[a].y, 5.5f, menuItems[a].xRot, menuItems[a].yRot, menuItems[a].zRot, menuItems[a].verticesBuffer, null, menuItems[a].textureId, Shaders.defaultShader, 1.0f);
+			objectRenderer.render(menuItems[a].x, menuItems[a].y, menuItems[a].z, menuItems[a].xRot, menuItems[a].yRot, menuItems[a].zRot, menuItems[a].textureId, Shaders.defaultShader, 1.0f, 1);
 		}
 	}
 	
@@ -108,7 +114,7 @@ public class RadialMenu {
 		for(int a = 0; a < MENU_SIZE; a++) {
 			menuItems[a].applyTransition();
 			GLES20.glUniform3fv(Shaders.colorShader.colorHandle, 1, menuItems[a].colorIndex, 0); //glUniform1f(Shaders.colorShader.colorHandle, menuItems[a].colorIndex);
-			objectRenderer.renderSolidColor(menuItems[a].x, -menuItems[a].y, 5.5f, menuItems[a].xRot, menuItems[a].yRot, menuItems[a].zRot, menuItems[a].verticesBuffer, Shaders.colorShader);
+			objectRenderer.renderSolidColorVBO(menuItems[a].x, menuItems[a].y, menuItems[a].z, menuItems[a].xRot, menuItems[a].yRot, menuItems[a].zRot, Shaders.colorShader, 1);
 		}
 	}
 	

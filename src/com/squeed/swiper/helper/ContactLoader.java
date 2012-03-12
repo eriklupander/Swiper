@@ -68,8 +68,6 @@ public class ContactLoader {
 				ContactsContract.Contacts.DISPLAY_NAME + " COLLATE LOCALIZED ASC");
 		context.startManagingCursor(c);
 
-		//ContactCard[] contacts = new ContactCard[c.getCount()];
-		
 		ArrayList<ContactCard> cList = new ArrayList<ContactCard>();
 		int a = 0;
 		while (c.moveToNext() && a < CARD_LIMIT) {
@@ -82,14 +80,6 @@ public class ContactLoader {
 	}
 	
 
-	
-//	private Bitmap loadContactPhoto16(Cursor cursor) {
-//		Uri contactUri = ContentUris.withAppendedId(Contacts.People.CONTENT_URI,
-//				cursor.getInt(0));
-//		InputStream is = Contacts.People.openContactPhotoInputStream(this.context.getContentResolver(), contactUri);
-//		return BitmapFactory.decodeStream(is);	
-//	}
-//	
 	private Bitmap loadContactPhoto21(Cursor cursor) {
 
 		if (cursor.getString(5) != null) {
@@ -101,9 +91,6 @@ public class ContactLoader {
 						context.getContentResolver(), contactUri);
 				Log.i("", "Loaded image InputStream for " +  cursor.getString(1));
 				return BitmapFactory.decodeStream(is);
-//			} catch(OutOfMemoryError err) {
-//				Log.i("", err.getMessage());
-//				return null;
 			} catch(Exception e) {
 				Log.e("", "Error reading image: " + e.getMessage());
 			} finally {
@@ -118,10 +105,6 @@ public class ContactLoader {
 		}
 		return null;
 	}
-	
-	
-	
-	
 	
 	
 	
@@ -142,26 +125,6 @@ public class ContactLoader {
 		return resp;
 	}
 
-//	public static String[] loadPhoneNumbers(String personId, Activity localContext) {
-//		Uri personUri = ContentUris.withAppendedId(ContactsContract.Contacts.CONTENT_URI, Long.parseLong(personId));
-//		Uri phonesUri = Uri.withAppendedPath(personUri, ContactsContract.PhoneLookup.Contacts.Contacts.Phones.CONTENT_DIRECTORY);
-//		String[] proj = new String[] {Phones._ID, Phones.TYPE, Phones.NUMBER, Phones.LABEL};
-//		Cursor c = localContext.getContentResolver().query(phonesUri, proj, null, null, null);
-//
-//		localContext.startManagingCursor(c);
-//		
-//		
-//		ArrayList<String> l = new ArrayList<String>();
-//		
-//		while (c.moveToNext()) {
-//			String str = new String(c.getString(2)); // + "(" + c.getString(3) + ")");
-//			l.add(str);
-//		}
-//		
-//		c.close();
-//		String[] resp = new String[l.size()];
-//		return l.toArray((resp));
-//	}
 	
 	public static ArrayList<Phone> loadPhoneNumbers(String id, Activity localContext) {
  		ArrayList<Phone> phones = new ArrayList<Phone>();
@@ -185,24 +148,4 @@ public class ContactLoader {
  		pCur.close();
  		return(phones);
  	}
- 	
-// 	public ArrayList<Email> getEmailAddresses(String id) {
-// 		ArrayList<Email> emails = new ArrayList<Email>();
-// 		
-// 		Cursor emailCur = this.cr.query( 
-// 				ContactsContract.CommonDataKinds.Email.CONTENT_URI, 
-// 				null,
-// 				ContactsContract.CommonDataKinds.Email.CONTACT_ID + " = ?", 
-// 				new String[]{id}, null); 
-// 		while (emailCur.moveToNext()) { 
-// 		    // This would allow you get several email addresses
-// 			Email e = new Email(emailCur.getString(emailCur.getColumnIndex(ContactsContract.CommonDataKinds.Email.DATA))
-// 					,emailCur.getString(emailCur.getColumnIndex(ContactsContract.CommonDataKinds.Email.TYPE))  
-// 					);
-// 			emails.add(e);
-// 		} 
-// 		emailCur.close();
-// 		return(emails);
-// 	}
-
 }

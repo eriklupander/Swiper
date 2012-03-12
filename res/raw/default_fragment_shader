@@ -1,6 +1,19 @@
 precision mediump float;
 varying vec2 vTextureCoord;
 uniform sampler2D sTexture;
+uniform vec3 uLightPos; // Light position
+
+varying vec3 vNormal;
+varying vec3 vPosition; // Interpolated fragment position
+
 void main() {
-   gl_FragColor = texture2D(sTexture, vTextureCoord);	        
+   float distance = length(uLightPos - vPosition);
+   vec3 lightVector = normalize(uLightPos - vPosition);
+
+   float diffuse = max(dot(vNormal, lightVector), 0.1);
+   diffuse = (diffuse * (1.0 / (1.0 + (0.05 * distance * distance))))*2.0;
+   vec4 color = texture2D(sTexture, vTextureCoord);
+   vec4 color_out = texture2D(sTexture, vTextureCoord) * diffuse;
+   color_out[3] = color[3];
+   gl_FragColor = color_out;
 }

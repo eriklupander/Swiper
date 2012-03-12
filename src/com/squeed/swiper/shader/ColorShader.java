@@ -15,7 +15,7 @@ public class ColorShader extends Shader {
 
 	public ColorShader(int program, String name, int mMVPMatrixHandle,
 			int mPositionHandle, int colorHandle) {
-		super(program, name, mMVPMatrixHandle, mPositionHandle);
+		super(program, name, mMVPMatrixHandle, -1, mPositionHandle);
 		this.colorHandle = colorHandle;		
 	}
 

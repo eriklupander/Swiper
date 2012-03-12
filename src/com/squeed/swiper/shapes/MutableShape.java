@@ -30,10 +30,15 @@ import com.squeed.swiper.fw.Transition;
 public abstract class MutableShape {
 	
 	public static final int FLOAT_SIZE_BYTES = 4;
-	public static final int TRIANGLE_VERTICES_DATA_STRIDE_BYTES = 5 * FLOAT_SIZE_BYTES;
+	
 	public static final int TRIANGLE_VERTICES_DATA_POS_OFFSET = 0;
 	public static final int TRIANGLE_VERTICES_DATA_UV_OFFSET = 3;
+	public static final int TRIANGLE_VERTICES_DATA_NORMAL_OFFSET = 5;
+	
 	public static final int TRIANGLE_NORMALS_DATA_SIZE = 3;
+	
+	public static final int TRIANGLE_VERTICES_DATA_STRIDE_BYTES = 
+			(TRIANGLE_VERTICES_DATA_POS_OFFSET+TRIANGLE_VERTICES_DATA_UV_OFFSET+TRIANGLE_VERTICES_DATA_NORMAL_OFFSET) * FLOAT_SIZE_BYTES;
 	
 	public float x = 0.0f;
 	public float y = 0.0f;
@@ -49,12 +54,9 @@ public abstract class MutableShape {
 	public int textureId;
 	
 	/**
-	 * Each contact shall have a unique color index assigned so we can perform color-based picking.
+	 * Each shape shall have a unique color index assigned so we can perform color-based picking.
 	 */
-	public float[] colorIndex = new float[3];
-	
-	public FloatBuffer verticesBuffer;
-	public FloatBuffer normalsBuffer;
+	public float[] colorIndex = new float[3];	
 	
 	private Queue<Transition> transitionQueue = new LinkedList<Transition>();
 	public Transition currentTransition = null;
@@ -62,6 +64,12 @@ public abstract class MutableShape {
 	public final void pushTransitionOntoQueue(Transition transition) {
 		transitionQueue.offer(transition);
 		//Log.i("MutableShape", "Pushed " + transition.name + " onto queue. Queue has " + transitionQueue.size() + " items");
+	}
+	
+	private int vertexBufferIdx = 0;
+	
+	public int getVertexBufferIdx() {
+		return vertexBufferIdx;
 	}
 	
 	/**

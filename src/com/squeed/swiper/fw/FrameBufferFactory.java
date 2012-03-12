@@ -57,19 +57,19 @@ public class FrameBufferFactory {
     public static int createTargetTexture(GL10 gl, int width, int height) {
         int texture;
         int[] textures = new int[1];
-        gl.glGenTextures(1, textures, 0);
+        GLES20.glGenTextures(1, textures, 0);
         texture = textures[0];
-        gl.glBindTexture(GL10.GL_TEXTURE_2D, texture);
-        gl.glTexImage2D(GL10.GL_TEXTURE_2D, 0, GL10.GL_RGBA, width, height, 0,
+        GLES20.glBindTexture(GL10.GL_TEXTURE_2D, texture);
+        GLES20.glTexImage2D(GL10.GL_TEXTURE_2D, 0, GL10.GL_RGBA, width, height, 0,
                 GL10.GL_RGBA, GL10.GL_UNSIGNED_BYTE, null);
-        gl.glTexParameterf(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_MIN_FILTER,
+        GLES20.glTexParameterf(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_MIN_FILTER,
                 GL10.GL_NEAREST);
-        gl.glTexParameterf(GL10.GL_TEXTURE_2D,
+        GLES20.glTexParameterf(GL10.GL_TEXTURE_2D,
                 GL10.GL_TEXTURE_MAG_FILTER,
                 GL10.GL_LINEAR);
-        gl.glTexParameterx(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_WRAP_S,
+        GLES20.glTexParameteri(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_WRAP_S,
                 GL10.GL_REPEAT);
-        gl.glTexParameterx(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_WRAP_T,
+        GLES20.glTexParameteri(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_WRAP_T,
                 GL10.GL_REPEAT);
 ;            return texture;
     }
