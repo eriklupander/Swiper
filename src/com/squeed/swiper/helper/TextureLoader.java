@@ -254,11 +254,13 @@ public class TextureLoader {
 		Canvas c = null;
 		Bitmap tmpBitmap = null;
 		
-		if(bm.getConfig() == Bitmap.Config.RGB_565) {			
+		//if(bm.getConfig() == Bitmap.Config.RGB_565) {			
 			tmpBitmap = Bitmap.createBitmap((int)x, (int)y, Bitmap.Config.ARGB_8888);
 			c = new Canvas(tmpBitmap);
 			c.drawBitmap(bm, 0, 0, null);			
-		}
+		//} else {
+		//	c = new Canvas(bm);
+		//}
 
 		Paint p2 = new Paint();
 		p2.setColor(Color.WHITE);
