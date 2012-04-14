@@ -1,5 +1,10 @@
 package com.squeed.swiper.util;
 
+/**
+ * @deprecated Currently not used in the swiper application
+ * @author Koen Samyn
+ *
+ */
 public class Intersection {
     public Float3 intersection;
     public float t;

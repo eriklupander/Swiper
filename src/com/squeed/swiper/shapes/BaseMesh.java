@@ -1,6 +1,5 @@
 package com.squeed.swiper.shapes;
 
-import java.nio.FloatBuffer;
 import java.util.LinkedList;
 import java.util.Queue;
 
@@ -11,10 +10,10 @@ import com.squeed.swiper.fw.Transition;
 /**
  * The base class for 3D-meshes. Contains common stuff such as
  * xyz position (in world coordinates), xyz rotation
- * and of course the actual vertice data.
+ * and of course the actual vertex data.
  * 
- * (Actually, since our application mostly uses the same vertice data over and over,
- * it might be a better idea to store the verticies at a single location with a handle
+ * (Actually, since our application mostly uses the same vertices over and over,
+ * it might be a better idea to store the vertices at a single location with a handle
  * in the MutableShape)
  * 
  * The transitionQueue is a simple way of queuing animations for this particular instance.
@@ -27,7 +26,7 @@ import com.squeed.swiper.fw.Transition;
  * @author Erik
  *
  */
-public abstract class MutableShape {
+public abstract class BaseMesh {
 	
 	public static final int FLOAT_SIZE_BYTES = 4;
 	

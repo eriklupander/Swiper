@@ -17,6 +17,7 @@ public class Float4 {
      * @param x the x value .
      * @param y the y value.
      * @param z the z value.
+     * @param w the w value.
      */
     public Float4(float x, float y, float z, float w){
         this.x = x;

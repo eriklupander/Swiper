@@ -12,7 +12,9 @@ package com.squeed.swiper;
  *
  */
 public class AppState {
+	
 	public static boolean inSelectionMode = false;
+	
 	static boolean isBouncing = false;		
 	static boolean hasBeenPaused = false;
 	

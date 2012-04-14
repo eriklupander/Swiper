@@ -3,6 +3,7 @@ package com.squeed.swiper.util;
 import java.util.ArrayList;
 
 /**
+ * @deprecated Currently not used in the swiper app.
  * @author Koen Samyn
  */
 public class Line {

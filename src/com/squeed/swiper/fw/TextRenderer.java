@@ -26,6 +26,11 @@ import com.squeed.swiper.helper.MatrixStack;
 import com.squeed.swiper.helper.TextCreator;
 import com.squeed.swiper.shader.Shader;
 
+/**
+ * Renders text
+ * @author Erik
+ *
+ */
 public class TextRenderer {
 	
 	private static final int FLOAT_SIZE_BYTES = 4;

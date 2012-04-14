@@ -4,6 +4,11 @@ import javax.microedition.khronos.opengles.GL10;
 
 import android.opengl.GLU;
 
+/**
+ * A number of math functions found on StackOverflow that might, or might not, come in handy.
+ * @deprecated Currently not used in the swiper application
+ *
+ */
 public class MathHelper {
 
 	public static float[] getViewRay(float x, float y, int nScreenWidth, int nScreenHeight, float[] posCamera, float[] modelViewMatrix, float[] projectionMatrix)

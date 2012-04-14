@@ -15,17 +15,17 @@ import com.squeed.swiper.ContactCardsRenderer;
 import com.squeed.swiper.shader.BasicTextureShader;
 import com.squeed.swiper.shader.Shader;
 import com.squeed.swiper.shapes.Buffers;
-import com.squeed.swiper.shapes.MutableShape;
+import com.squeed.swiper.shapes.BaseMesh;
 
 /**
  * Generic renderer. Implements a few different "render" methods that
- * each take a {@link MutableShape}, a Shader and some parameter variants.
+ * each take a {@link BaseMesh}, a Shader and some parameter variants.
  * 
  * @author Erik
  */
 public class ObjectRenderer {
 		
-	public void render(MutableShape shape, Shader shader) {
+	public void render(BaseMesh shape, Shader shader) {
 		GLES20.glUseProgram(shader.program);
 		
 		renderVBO(shape.x, shape.y, shape.z, shape.xRot, shape.yRot, shape.zRot, shape.textureId, shader, 1.0f, shape.getVertexBufferIdx());
@@ -42,7 +42,7 @@ public class ObjectRenderer {
 	 * @param attrib
 	 * @param value
 	 */
-	public void render(MutableShape shape, Shader shader, int attrib, float value) {
+	public void render(BaseMesh shape, Shader shader, int attrib, float value) {
 		GLES20.glUseProgram(shader.program);
 //		checkGlError("glUseProgram");
 
@@ -51,7 +51,7 @@ public class ObjectRenderer {
 		renderVBO(shape.x, shape.y, shape.z, shape.xRot, shape.yRot, shape.zRot, shape.textureId, shader, 1.0f, shape.getVertexBufferIdx());
 	}
 	
-	public void renderReflection(MutableShape shape, Shader shader, int attrib, float value, float yOffset, float scale) {
+	public void renderReflection(BaseMesh shape, Shader shader, int attrib, float value, float yOffset, float scale) {
 		GLES20.glUseProgram(shader.program);
 //		checkGlError("glUseProgram");
 
@@ -60,7 +60,7 @@ public class ObjectRenderer {
 		renderVBO(shape.x, shape.y-yOffset, shape.z, shape.xRot, shape.yRot, shape.zRot, shape.textureId, shader, scale, shape.getVertexBufferIdx());
 	}
 	
-	public void renderReflection(MutableShape shape, Shader shader, int[] attribs, float[] values, float yOffset, float scale) {
+	public void renderReflection(BaseMesh shape, Shader shader, int[] attribs, float[] values, float yOffset, float scale) {
 		GLES20.glUseProgram(shader.program);
 		for(int a = 0; a < attribs.length; a++) {
 			GLES20.glUniform1f(attribs[a], values[a]);
@@ -68,7 +68,7 @@ public class ObjectRenderer {
 		renderVBO(shape.x, shape.y-yOffset, shape.z, shape.xRot, shape.yRot, shape.zRot, shape.textureId, shader, scale, shape.getVertexBufferIdx());
 	}
 	
-	public void renderSolidColor(MutableShape shape, Shader shader, int attrib, float[] value, int vertexBufferIdx) {
+	public void renderSolidColor(BaseMesh shape, Shader shader, int attrib, float[] value, int vertexBufferIdx) {
 		GLES20.glUseProgram(shader.program);
 		GLES20.glUniform3fv(attrib, 1, value, 0); // the value is a 3-element vector with rgb values.
 		renderSolidColorVBO(shape.x, shape.y, shape.z, shape.xRot, shape.yRot, shape.zRot, shader, vertexBufferIdx);
@@ -197,12 +197,12 @@ public class ObjectRenderer {
 	private void bindVbo(Shader shader, int vertexBufferIdx) {
 		glBindBuffer(GL_ARRAY_BUFFER, Buffers.vboBuffer[vertexBufferIdx]);
 		glEnableVertexAttribArray(shader.mPositionHandle);
-		glVertexAttribPointer(shader.mPositionHandle, 3, GL_FLOAT, false, MutableShape.TRIANGLE_VERTICES_DATA_STRIDE_BYTES, 0);
+		glVertexAttribPointer(shader.mPositionHandle, 3, GL_FLOAT, false, BaseMesh.TRIANGLE_VERTICES_DATA_STRIDE_BYTES, 0);
 
 		// Pass in the texture information
 		glBindBuffer(GL_ARRAY_BUFFER, Buffers.vboBuffer[vertexBufferIdx]);
 		glEnableVertexAttribArray(shader.mTextureHandle);
-		glVertexAttribPointer(shader.mTextureHandle, 2, GL_FLOAT, false, MutableShape.TRIANGLE_VERTICES_DATA_STRIDE_BYTES, MutableShape.TRIANGLE_VERTICES_DATA_UV_OFFSET*MutableShape.FLOAT_SIZE_BYTES);
+		glVertexAttribPointer(shader.mTextureHandle, 2, GL_FLOAT, false, BaseMesh.TRIANGLE_VERTICES_DATA_STRIDE_BYTES, BaseMesh.TRIANGLE_VERTICES_DATA_UV_OFFSET*BaseMesh.FLOAT_SIZE_BYTES);
     	
 	}
 	
@@ -250,7 +250,7 @@ public class ObjectRenderer {
 		// Pass in the normal information
 		glBindBuffer(GL_ARRAY_BUFFER, Buffers.vboBuffer[vertexBufferIdx]);
 		glEnableVertexAttribArray(shader.mNormalHandle);
-		glVertexAttribPointer(shader.mNormalHandle, 3, GL_FLOAT, false, MutableShape.TRIANGLE_VERTICES_DATA_STRIDE_BYTES, MutableShape.TRIANGLE_VERTICES_DATA_NORMAL_OFFSET*MutableShape.FLOAT_SIZE_BYTES);
+		glVertexAttribPointer(shader.mNormalHandle, 3, GL_FLOAT, false, BaseMesh.TRIANGLE_VERTICES_DATA_STRIDE_BYTES, BaseMesh.TRIANGLE_VERTICES_DATA_NORMAL_OFFSET*BaseMesh.FLOAT_SIZE_BYTES);
 		
 		/** BLOCK 4, Draw and release vbo */ 
 		// Draw
@@ -276,7 +276,7 @@ public class ObjectRenderer {
         
         glBindBuffer(GL_ARRAY_BUFFER, Buffers.vboBuffer[vertexBufferIdx]);
 		glEnableVertexAttribArray(shader.mPositionHandle);
-		glVertexAttribPointer(shader.mPositionHandle, 3, GL_FLOAT, false, MutableShape.TRIANGLE_VERTICES_DATA_STRIDE_BYTES, 0);
+		glVertexAttribPointer(shader.mPositionHandle, 3, GL_FLOAT, false, BaseMesh.TRIANGLE_VERTICES_DATA_STRIDE_BYTES, 0);
 		
         GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4);
         glBindBuffer(GL_ARRAY_BUFFER, 0);

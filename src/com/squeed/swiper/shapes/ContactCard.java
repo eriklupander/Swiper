@@ -12,7 +12,7 @@ import android.graphics.Bitmap;
  * @author Erik
  *
  */
-public class ContactCard extends MutableShape {
+public class ContactCard extends BaseMesh {
 	
 	/**
 	 * Primary key (from SqlLite) of the contact.

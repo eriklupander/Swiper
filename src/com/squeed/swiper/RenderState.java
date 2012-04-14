@@ -9,6 +9,7 @@ package com.squeed.swiper;
  *
  */
 public class RenderState {
+	
 	static boolean renderPulse = false;
 	static boolean renderSolid = false;
 	static boolean renderReflection = false;

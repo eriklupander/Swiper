@@ -12,7 +12,7 @@ import com.squeed.swiper.ContactCardsRenderer;
 import com.squeed.swiper.R;
 
 /**
- * This class holds some shader code and boilerplate code to load them.
+ * This class holds some boilerplate code to load shaders. The actual shaders are stored in res/raw
  * 
  * This makes it really simple to switch between shaders in onDrawFrame()
  * 
@@ -29,79 +29,8 @@ public class Shaders {
 	public static PulseReflectionShader pulseReflectionShader;	
 	public static ColorShader colorShader;
 	public static BasicTextureShader basicShader;
-	
-    /**
-     * The standard vertex shader. This mimics the behaviour of the OpenGL ES 1.0 static vertex pipeline.
-     */
-//	public static final String mVertexShader =
-//        "uniform mat4 uMVPMatrix;\n" +
-//        "attribute vec4 aPosition;\n" +
-//        "attribute vec2 aTextureCoord;\n" +        
-//        "varying vec2 vTextureCoord;\n" +
-//        "void main() {\n" +
-//        "  gl_Position = uMVPMatrix * aPosition;\n" +
-//        "  vTextureCoord = aTextureCoord;\n" +
-//        "}\n";
-	
 
-	
-	/**
-	 * The color only pixel shader
-	 */
-//	public static final String mColorFragmentShader =
-//        "precision mediump float;\n" +   
-//        "uniform float color;\n" +
-//        "void main() {\n" +
-//        "  gl_FragColor = vec4(color, 0.1, 0.1, 1.0);\n" +
-//        "}\n";
-	
-	
-//	/**
-//	 * The vertex "pulsing" shader. Uses a sin function and a feeded "time"  in order to
-//	 * change the z-value based on the x-value.
-//	 */
-//	public static final String mVertexShaderPulse =		
-//		"uniform mat4 uMVPMatrix;\n" +
-//        "attribute vec4 aPosition;\n" +
-//        "attribute vec2 aTextureCoord;\n" +
-//        "varying vec2 vTextureCoord;\n" +
-//        "uniform float time;\n" +
-//        "void main() {\n" +
-//        "  vec4 v = vec4(aPosition);\n" +
-//        "  v.z = sin(5.0*v.x + time*0.01)*0.25;\n" +
-//        "  gl_Position = uMVPMatrix * v;\n" +
-//        "  vTextureCoord = aTextureCoord;\n" +
-//        "}\n";
-	
-//	/**
-//	 * The standard pixel shader, mimics the OpenGL ES 1.0 static pipeline.
-//	 */
-//	public static final String mFragmentShader =
-//        "precision mediump float;\n" +
-//        "varying vec2 vTextureCoord;\n" +
-//        "uniform sampler2D sTexture;\n" +
-//        "void main() {\n" +
-//        "  gl_FragColor = texture2D(sTexture, vTextureCoord);\n" +	        
-//        "}\n";
-	
-	
-	
-    
-	/**
-	 * A more advanced pixel shader used to render the reflection effect. The texture coordinate
-	 * is used to set a decreasing alpha value for the pixel.
-	 */
-//	public static final String mFragmentShaderReflection =
-//    	"precision mediump float;\n" +
-//        "varying vec2 vTextureCoord;\n" +
-//        "uniform sampler2D sTexture;\n" +
-//        "uniform float amount;\n" +
-//        "void main() {\n" +
-//        "  vec4 color = texture2D(sTexture, vTextureCoord);\n" +
-//        "  color[3] = ((vTextureCoord[1])/amount)-0.07;\n" +
-//        "  gl_FragColor = color;\n" +
-//        "}\n";
-	private static final String TAG = null;
+	private static final String TAG = "Shaders";
 	
 	public static void initBasichader() {
 		String vertexShaderSrc = loadShaderFromResource(R.raw.basic_vertex_shader);

@@ -73,6 +73,25 @@ public class Shader {
 		this.mTextureHandle = mTextureHandle;
 	}
 	
+	/**
+	 * 
+	 * @param program
+	 * 		Handle to the shader program
+	 * @param name
+	 * 		A name for the shader program. Not used by OpenGL ES 2.0
+	 * @param mMVPMatrixHandle
+	 * 		Handle to the ModelViewProjection matrix
+	 * @param mMVMatrixHandle
+	 * 		Handle to the ModelView matrix
+	 * @param mPositionHandle
+	 * 		Handle to the vertex position
+	 * @param mTextureHandle
+	 * 		Handle to the texture coordinates
+	 * @param mNormalHandle
+	 * 		Handle to the normal vector
+	 * @param mLightHandle
+	 * 		Handle to the light position
+	 */
 	public Shader(int program, String name, int mMVPMatrixHandle,  int mMVMatrixHandle, int mPositionHandle,
 			int mTextureHandle, int mNormalHandle, int mLightHandle) {
 		super();

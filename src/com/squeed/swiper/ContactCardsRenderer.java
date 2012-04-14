@@ -16,7 +16,6 @@ import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.AnticipateOvershootInterpolator;
 import android.view.animation.OvershootInterpolator;
 
-import com.squeed.swiper.composites.RadialMenu;
 import com.squeed.swiper.fw.FrameBufferFactory;
 import com.squeed.swiper.fw.NumberRenderer;
 import com.squeed.swiper.fw.ObjectRenderer;
@@ -29,6 +28,7 @@ import com.squeed.swiper.shapes.Buffers;
 import com.squeed.swiper.shapes.ContactCard;
 import com.squeed.swiper.shapes.IconQuad;
 import com.squeed.swiper.shapes.NumberQuad;
+import com.squeed.swiper.shapes.RadialMenu;
 
 /**
  * Renders the scene, this is the "main" loop of the 3D-rendering. Note the heavy usage of statics,

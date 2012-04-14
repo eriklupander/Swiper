@@ -6,7 +6,7 @@ import java.nio.FloatBuffer;
 
 import com.squeed.swiper.actions.Command;
 
-public class IconQuad extends MutableShape {
+public class IconQuad extends BaseMesh {
 	
 	public Command actionWhenClicked;
 	

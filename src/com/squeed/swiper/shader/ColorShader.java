@@ -3,6 +3,7 @@ package com.squeed.swiper.shader;
 /**
  * VERY useful shader. Not pretty, but gives us the ability to render solid
  * color (to a FrameBufferObject) which we can subsequently use for picking purposes.
+ * 
  * @author Erik
  *
  */

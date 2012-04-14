@@ -1,7 +1,7 @@
 package com.squeed.swiper.fw;
 
 import com.squeed.swiper.helper.MatrixLogger;
-import com.squeed.swiper.shapes.MutableShape;
+import com.squeed.swiper.shapes.BaseMesh;
 
 import android.view.animation.Interpolator;
 
@@ -111,7 +111,7 @@ public class Transition {
 	 * @param currentXyz
 	 * @return
 	 */
-	public boolean applyFrame(MutableShape shape) {
+	public boolean applyFrame(BaseMesh shape) {
 //		if(isComplete)
 //			return true;
 		if(timeOfStart == 0) {

@@ -1,4 +1,4 @@
-package com.squeed.swiper.composites;
+package com.squeed.swiper.shapes;
 
 import static android.opengl.GLES20.GL_TEXTURE_2D;
 
@@ -25,12 +25,9 @@ import com.squeed.swiper.actions.MakeVisible;
 import com.squeed.swiper.fw.ObjectRenderer;
 import com.squeed.swiper.fw.Transition;
 import com.squeed.swiper.shader.Shaders;
-import com.squeed.swiper.shapes.IconQuad;
 
 /**
  * The radial menu is made up of (n) number of IconQuads, evenly distributed across 360 degrees.
- * 
- * Note - this class is specific to the Swiper app for now. 
  * 
  * @author Erik
  *

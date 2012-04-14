@@ -22,10 +22,6 @@ import android.net.Uri;
  *
  */
 public class LaunchDial implements Command {
-	
-	
-//	private final static String DIAL_CONTACT_21_URI = "content://com.android.contacts/raw_contacts/";
-//	private final static String DIAL_CONTACT_16_URI = "content://contacts/people/";
 
 	private Context context;	
 	

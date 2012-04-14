@@ -52,6 +52,9 @@ public class SwipeActivity extends Activity {
 		}
 	}
 	
+	/**
+	 * Iterate over the contact cards, set initial x,y,z values and assign a unique "color index" to use for color based picking.
+	 */
 	private void initalizeContactCards(ContactCard[] contacts) {
 		
 		int colorIndex = 0x000000;
@@ -116,10 +119,10 @@ public class SwipeActivity extends Activity {
 	}
 
 
-	public boolean onContextItemSelected(MenuItem item) {
-		mGLSurfaceView.bringToFront();
-		return super.onContextItemSelected(item);		
-	}
+//	public boolean onContextItemSelected(MenuItem item) {
+//		mGLSurfaceView.bringToFront();
+//		return super.onContextItemSelected(item);		
+//	}
 	
 	
 	

@@ -1,6 +1,6 @@
 package com.squeed.swiper.shapes;
 
-public class NumberQuad extends MutableShape {
+public class NumberQuad extends BaseMesh {
 
 	public int[] numbersTexture;
 
