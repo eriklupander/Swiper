@@ -75,80 +75,6 @@ public class ObjectRenderer {
 	}
 
 	
-//	/**
-//	 * 
-//	 * @param shape
-//	 * @param shader
-//	 * @param attribs
-//	 * 		Length of attribs must be 0, 2, 4... first value is handle to attribute, the second is value to use for that attribute.
-//	 */
-//	public void render(MutableShape shape, Shader shader, int[] attribs, float[] values) {
-//		GLES20.glUseProgram(shader.program);
-//		
-//		for(int a = 0; a < attribs.length; a++) {
-//			GLES20.glUniform1f(attribs[a], values[a]);
-//		} 				
-//		renderVBO(shape.x, shape.y, shape.z, shape.xRot, shape.yRot, shape.zRot, shape.verticesBuffer, shape.normalsBuffer, shape.textureId, shader, 1.0f, shape.getVertexBufferIdx());
-//	}
-
-//	public void render(float x, float y, float z, float xRot, float yRot, float zRot, FloatBuffer verticies, FloatBuffer normals, int textureId, Shader shader, float scale) {
-//		
-//		// 1. Make TEXTURE0 active and bind it.
-//		GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
-//        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureId);
-//        
-//        // 2. Enable blending
-//        GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
-//        GLES20.glEnable(GLES20.GL_BLEND);
-//        
-//
-//        
-//        // 4½ Pass in the normal information
-////        if(normals != null) {
-////	        normals.position(0);
-////	        GLES20.glVertexAttribPointer(shader.mNormalHandle, MutableShape.TRIANGLE_NORMALS_DATA_SIZE, GLES20.GL_FLOAT, false,
-////	         0, normals);
-////	        
-////	        GLES20.glEnableVertexAttribArray(shader.mNormalHandle);
-////        }
-//        
-//        // 6. First translate to WHERE we want to draw...
-//        Matrix.setIdentityM(ContactCardsRenderer.mModelMatrix, 0);
-//        Matrix.translateM(ContactCardsRenderer.mModelMatrix, 0, x, y, z);
-//        
-//        // 7. ... and THEN rotate (and scale, if applicable)
-//        Matrix.rotateM(ContactCardsRenderer.mModelMatrix, 0, yRot, 0, 1.0f, 0);
-//        
-//        if(scale != 1.0f)
-//        	Matrix.scaleM(ContactCardsRenderer.mModelMatrix, 0, 1.0f, scale, 1.0f);
-//        
-//        // 8. Multiply the VMMatrix with the ModelMatrix, store the result in the ModelViewProjection Matrix.
-//        Matrix.multiplyMM(ContactCardsRenderer.mModelViewProjectionMatrix, 0, ContactCardsRenderer.mViewMatrix, 0, ContactCardsRenderer.mModelMatrix, 0);
-//        
-//        // 9. Then multiply the projection matrix by the MVP matrix.
-//        Matrix.multiplyMM(ContactCardsRenderer.mModelViewProjectionMatrix, 0, ContactCardsRenderer.mProjectionMatrix, 0, ContactCardsRenderer.mModelViewProjectionMatrix, 0);
-//
-//        // 10. Feed the newly calculated MVP matrix to the shader
-//        GLES20.glUniformMatrix4fv(shader.mMVPMatrixHandle, 1, false, ContactCardsRenderer.mModelViewProjectionMatrix, 0);
-//
-//    	// DRAW USING OLD-SCHOOL technique
-//        // 3. Feed the verticies to the vertex shader
-//        verticies.position(TRIANGLE_VERTICES_DATA_POS_OFFSET);
-//        GLES20.glVertexAttribPointer(shader.mPositionHandle, 3, GLES20.GL_FLOAT, false,
-//                TRIANGLE_VERTICES_DATA_STRIDE_BYTES, verticies);
-//        GLES20.glEnableVertexAttribArray(shader.mPositionHandle);
-//        
-//        // 4. Feed texture coordinates to fragment shader
-//        verticies.position(TRIANGLE_VERTICES_DATA_UV_OFFSET);
-//        
-//        GLES20.glVertexAttribPointer(shader.mTextureHandle, 2, GLES20.GL_FLOAT, false,
-//                TRIANGLE_VERTICES_DATA_STRIDE_BYTES, verticies);
-//        GLES20.glEnableVertexAttribArray(shader.mTextureHandle);
-//        
-//    	GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4);    
-//        
-//	}
-	
 	public void renderBasicVBO(float x, float y, float z, float xRot, float yRot, float zRot, int textureId, BasicTextureShader shader, float scale, int vertexBufferIdx) {
 		/** BLOCK 1, set glEnable state flags for texture and blending */
 		// 1. Make TEXTURE0 active and bind it.
@@ -195,6 +121,7 @@ public class ObjectRenderer {
 	}
 
 	private void bindVbo(Shader shader, int vertexBufferIdx) {
+		// Pass in the verticies
 		glBindBuffer(GL_ARRAY_BUFFER, Buffers.vboBuffer[vertexBufferIdx]);
 		glEnableVertexAttribArray(shader.mPositionHandle);
 		glVertexAttribPointer(shader.mPositionHandle, 3, GL_FLOAT, false, BaseMesh.TRIANGLE_VERTICES_DATA_STRIDE_BYTES, 0);
@@ -207,7 +134,7 @@ public class ObjectRenderer {
 	}
 	
 	public void renderVBO(float x, float y, float z, float xRot, float yRot, float zRot, int textureId, Shader shader, float scale, int vertexBufferIdx) {
-		
+		/** Block 1, some rendering pipeline setup */
 		setTextureAndEnableBlending(textureId);
         
        
@@ -226,7 +153,8 @@ public class ObjectRenderer {
         // 8. Multiply the VMMatrix with the ModelMatrix, store the result in the ModelViewProjection Matrix.
         Matrix.multiplyMM(ContactCardsRenderer.mModelViewProjectionMatrix, 0, ContactCardsRenderer.mViewMatrix, 0, ContactCardsRenderer.mModelMatrix, 0);
         
-        // Pass in the modelview matrix. I.e, the 
+        // Pass in the modelview matrix that we use for lights stuff
+        // I.e, we use the ModelViewProjection matrix array, which currently only contains model * view.
         GLES20.glUniformMatrix4fv(shader.mMVMatrixHandle, 1, false, ContactCardsRenderer.mModelViewProjectionMatrix, 0); 
         
         // 9. Then multiply the projection matrix by the MVP matrix.
