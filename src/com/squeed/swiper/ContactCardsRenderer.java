@@ -46,26 +46,35 @@ public class ContactCardsRenderer implements GLSurfaceView.Renderer{
 		public static int[] textureIDs;
 
 		public static int currentTextureIndex = 0;
+		
+		// Some fields for the frameBufferObject.
+		public static int mTargetTexture;
+		private int mFramebuffer;
+		
+		private static float currentRotatationToFrontAngle;
 
-		private ObjectRenderer renderer;
+		private static ObjectRenderer renderer;
 		public static Context mContext;
-		//private Projector mProjector;
+
+		// Some values used for keeping track of current scroll speed and contact flow x position.
 		private static float currentVelocity = 0.0f;
 		private static float direction = 0.0f;
 		private static float xTranslate = 0.0f;
+		
+		private static float currentCardZDepth = 3.0f;
 
 		private static int selectedIndex = -1;
 		
 		private static float velocityDecrease = SWIPE_VELOCITY_DECREASE;
 
-		
+		// Initialize some animation interpolators.
 		private static final AccelerateDecelerateInterpolator acdcIntp = new AccelerateDecelerateInterpolator();
 		private static final AnticipateOvershootInterpolator intp = new AnticipateOvershootInterpolator(1.2f);
 		private static final OvershootInterpolator bounceIntp = new OvershootInterpolator();
 		
 		private static RadialMenu radialMenu;
 		private static BgQuad bgQuad;
-		private static NumberQuad numberQuad;
+		
 		
 		private float[] mLightColor = new float[]{1.0f, 0.8f, 0.8f};
 
@@ -120,8 +129,9 @@ public class ContactCardsRenderer implements GLSurfaceView.Renderer{
 		private float fps;
 
 		/** Renderer for text/numbers */
-		private TextRenderer textRenderer = new TextRenderer();
-		private NumberRenderer numberRenderer = new NumberRenderer();
+		//private TextRenderer textRenderer = new TextRenderer();
+		//private NumberRenderer numberRenderer = new NumberRenderer();
+		private static NumberQuad numberQuad;
 		
 		/**
 		 * Constructs the renderer, the contactcards to render are supplied.
@@ -172,13 +182,13 @@ public class ContactCardsRenderer implements GLSurfaceView.Renderer{
 		 
 		 
 		public void onDrawFrame(GL10 gl) {
-			updateFpsCounter();
+			updateTimeCounter();
 
 			clearFrame();
 			
-			if(RenderState.renderLightPos) {
-				renderLight();
-			}
+//			if(RenderState.renderLightPos) {
+//				renderLight();
+//			}
 		    
 			// background draw disabled by default, kills fps on emulator.
 		    if(RenderState.renderBg) {		    	
@@ -197,8 +207,7 @@ public class ContactCardsRenderer implements GLSurfaceView.Renderer{
 			frames++;
 			if(frames == 150) {
 				fps = 150.0f / ((System.currentTimeMillis() - startTime)/1000.0f);
-				
-				
+								
 				//Log.i("FPS", "150 frames took : " + (System.currentTimeMillis() - startTime) + " ms to render, which means " + fps + " fps");
 				frames = 0;
 			}
@@ -209,6 +218,9 @@ public class ContactCardsRenderer implements GLSurfaceView.Renderer{
 		}
 
 
+		/**
+		 * Renders a little solid-color quad at the current light position. Only used for debugging purposes.
+		 */
 		private void renderLight() {
 			GLES20.glUseProgram(Shaders.colorShader.program);
 			GLES20.glUniform3fv(Shaders.colorShader.colorHandle, 1, mLightColor, 0);
@@ -229,7 +241,7 @@ public class ContactCardsRenderer implements GLSurfaceView.Renderer{
 		}
 
 
-		private void updateFpsCounter() {
+		private void updateTimeCounter() {
 			if(time > Integer.MAX_VALUE - 20) {
 				time = 0;				
 			}
@@ -241,7 +253,9 @@ public class ContactCardsRenderer implements GLSurfaceView.Renderer{
 		}
 
 		
-		
+		/**
+		 * Renders the background quad
+		 */
 		private void renderBackground() {
 			GLES20.glUseProgram(Shaders.basicShader.program);
 			renderer.renderBasicVBO(0, 0, 0, 0, 0, 0, bgQuad.texture[0], Shaders.basicShader, 1.0f, 2);
@@ -368,25 +382,27 @@ public class ContactCardsRenderer implements GLSurfaceView.Renderer{
 				}
 				ContactCard cc = contactCards[i];
 				
+				// If the card at the current index is currently selected, don't draw it since it's being drawn by some other code
 				if (i == selectedIndex)
 					continue;
 
+				// Update x,z and y-axis rotation for this card 
 				cc.x -= xTranslate;				
-				cc.z = Z_DEPTH - (Math.abs(cc.x) / 2);
+				cc.z = currentCardZDepth - (Math.abs(cc.x) / 2);
 				cc.yRot = cc.x * 9.0f;
 				
 				// The most crude occlusion culling ever...
-				if(cc.x < -5 || cc.x > 5) {					
+				if(cc.x < -7 || cc.x > 7) {					
 					continue;
-				}
-				
+				}				
 					
-				if(RenderState.renderSolid) {
-					
+				// If the "solid color render" test mode is active, draw solid and go to next card
+				if(RenderState.renderSolid) {					
 					renderer.renderSolidColor(cc, Shaders.colorShader,  Shaders.colorShader.colorHandle, cc.colorIndex, 0);
 					//Log.i(TAG, "Rendered solid pass!");
 					continue;
 				}
+				
 				
 				if(!RenderState.renderPulse) {					
 					renderer.render(cc, Shaders.defaultShader);
@@ -406,31 +422,7 @@ public class ContactCardsRenderer implements GLSurfaceView.Renderer{
 
 
 		private static int X_SIZE, Y_SIZE;
-//		private static float[] obj = new float[3];
-//		
-		
-//		public static int[] numbersTexture = new int[1];
-//		
-//		
-//		private float[] get2DCoordsFrom3D(float x, float y, float z) {					
-//			
-//			GLU.gluProject(x, y, z, mModelMatrix, 0,
-//					mProjectionMatrix, 0, viewport3, 0, obj, 0);
-//			return obj;
-//		}
-//		
-//		private static float[] result = new float[4];
-//		private static float[] result3 = new float[4];
-//		
-//		private float[] get3DCoordsFrom2D(float x, float y, float z) {
-//			Log.i(TAG, "3D W:" + x + " H: " + y);
-//			
-//			MathHelper.gluUnProject(x, y, z, mModelMatrix, 0, mProjectionMatrix, 0, viewport3, 0, result, 0);
-//			Log.i(TAG, "3D " + MatrixLogger.vector4ToString(result));
-//			return result;			
-//		}
-		
-		
+	
 
 		public void onSurfaceChanged(GL10 gl, int width, int height) {
 			Log.i("onSurfaceChanged","width:" + width + ",height:" + height);
@@ -450,16 +442,9 @@ public class ContactCardsRenderer implements GLSurfaceView.Renderer{
 		
 		
 
-		public void onSurfaceCreated(GL10 gl, EGLConfig config) {
-			
+		public void onSurfaceCreated(GL10 gl, EGLConfig config) {			
 			
 			currentTextureIndex = 0;
-			/*
-			 * By default, OpenGL enables features that improve quality but
-			 * reduce performance. One might want to tweak that especially on
-			 * software renderer.
-			 */
-			//GLES20.glDisable(GL10.GL_DITHER);
 			
 			Shaders.initDefaultShader();
 			Shaders.initColorShader();
@@ -470,7 +455,6 @@ public class ContactCardsRenderer implements GLSurfaceView.Renderer{
 			
 			// Only setup textures on load.			
 			setupTextures(gl);			
-			
 			
 			// Init shapes
 			initVertexBufferObjects(gl);
@@ -490,9 +474,6 @@ public class ContactCardsRenderer implements GLSurfaceView.Renderer{
 			GLES20.glEnable(GL10.GL_DEPTH_TEST);
 			GLES20.glEnable(GL10.GL_BLEND);
 			GLES20.glEnable(GL10.GL_TEXTURE_2D);
-			
-
-
 
 			// Setup camera
 			Matrix.setLookAtM(mViewMatrix, 0, 0, 0, 6.0f, 0f, 0f, 0f, 0f, 1.0f, 0.0f);
@@ -503,8 +484,7 @@ public class ContactCardsRenderer implements GLSurfaceView.Renderer{
 		private void initVertexBufferObjects(GL10 gl) {
 			Buffers.currentBufferIdx = 0;
 			// Generate three buffers
-			GLES20.glGenBuffers(3, Buffers.vboBuffer, 0);			 
-			
+			GLES20.glGenBuffers(3, Buffers.vboBuffer, 0);			
 			
 			// Bind to the buffer, index 0
 			GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, Buffers.vboBuffer[0]);
@@ -512,8 +492,7 @@ public class ContactCardsRenderer implements GLSurfaceView.Renderer{
 			// Transfer data from client memory to the buffer.
 			// Data for the contact card mesh.
 			GLES20.glBufferData(GLES20.GL_ARRAY_BUFFER, ContactCard.verticesBuffer.capacity() * 4,
-					ContactCard.verticesBuffer, GLES20.GL_STATIC_DRAW);
-						 
+					ContactCard.verticesBuffer, GLES20.GL_STATIC_DRAW);						 
 			
 			Buffers.currentBufferIdx++;
 			
@@ -556,12 +535,6 @@ public class ContactCardsRenderer implements GLSurfaceView.Renderer{
 
 
 		
-		
-		
-
-		public static int mTargetTexture;
-		private int mFramebuffer;
-		private float ROTATION_TO_FRONT;
 
 		
 	/* (non-Javadoc)
@@ -572,7 +545,7 @@ public class ContactCardsRenderer implements GLSurfaceView.Renderer{
 		
 	public int testSelect(int winX, int winY) {
 		int hitIndex = -1;
-		// THIS WORKS!!!
+
 		GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, mFramebuffer);
 	    GLES20.glClear( GLES20.GL_DEPTH_BUFFER_BIT | GLES20.GL_COLOR_BUFFER_BIT);
 		
@@ -615,13 +588,13 @@ public class ContactCardsRenderer implements GLSurfaceView.Renderer{
 	    
 	    
 	    
-		// If showing radialmenu, test selection for those first.
+		// If showing radialmenu, test selection for the icons first.
 		
 		if (radialMenu.isVisible) {
 			if (radialMenu.inTransition()) {
 				return -1;
 			}
-			// TODO test if the color index picked is one of the menu buttons.
+
 			int selectedIconIndex = -1;
 			int len = radialMenu.getMenuItems().length;
 			for(int a = 0; a < len; a++) {
@@ -648,18 +621,17 @@ public class ContactCardsRenderer implements GLSurfaceView.Renderer{
 			AppState.isZoomToFront = false;
 			contactCards[selectedIndex].popTransition();
 			radialMenu.toggleInOut();
-			//selectedIndex = -1;
 			
 		} else {
 			selectedIndex = hitIndex;
 			AppState.inSelectionMode = true;	    	
 			AppState.isZoomToFront = true;
-			//isZoomToBack = false;
+
 			contactCards[selectedIndex].pushTransitionOntoQueueAndStart(
 					new Transition(
 							new float[]{contactCards[selectedIndex].x, contactCards[selectedIndex].y, contactCards[selectedIndex].z}, 
-							new float[]{0.0f, 0.0f, Z_DEPTH+2.0f}, 
-							300, acdcIntp, contactCards[selectedIndex].yRot, ROTATION_TO_FRONT)
+							new float[]{0.0f, 0.0f, currentCardZDepth+2.0f}, 
+							300, acdcIntp, contactCards[selectedIndex].yRot, currentRotatationToFrontAngle)
 			);
 			
 			radialMenu.setStartStop(contactCards[selectedIndex].x, contactCards[selectedIndex].y, contactCards[selectedIndex].z);
@@ -671,30 +643,28 @@ public class ContactCardsRenderer implements GLSurfaceView.Renderer{
 
 	
 	public void testSelectLongClick(int winX, int winY) {
-		
+		// Not in use at the moment
 	}
 
 
-	private void spinToFront(int i, ContactCard cc) {
-		
-		selectedIndex = i;
-		AppState.inSelectionMode = true;					
-		AppState.isZoomToFront = true;
-		cc.clearTransitionQueue();
-		cc.pushTransitionOntoQueueAndStart(
-				new Transition(
-						new float[]{cc.x,cc.y,cc.z}, 
-						new float[]{0.0f, 0.0f, -2.0f}, 
-						300, acdcIntp, cc.yRot, 180.0f
-				)
-		);
-	}
-	
-	
+//	private void spinToFront(int i, ContactCard cc) {
+//		
+//		selectedIndex = i;
+//		AppState.inSelectionMode = true;					
+//		AppState.isZoomToFront = true;
+//		cc.clearTransitionQueue();
+//		cc.pushTransitionOntoQueueAndStart(
+//				new Transition(
+//						new float[]{cc.x,cc.y,cc.z}, 
+//						new float[]{0.0f, 0.0f, -2.0f}, 
+//						300, acdcIntp, cc.yRot, 180.0f
+//				)
+//		);
+//	}
 	
 
 
-	public static float Z_DEPTH = 3.0f;
+	
 	
 
 	/**
@@ -703,8 +673,8 @@ public class ContactCardsRenderer implements GLSurfaceView.Renderer{
 	 */
 	public void pinchZoom(float f) {
 		Log.i("CCR", "ENTER - pinchZoom with value " + f);
-		if(Z_DEPTH + (f/150.0f) > 1.0f && Z_DEPTH + (f/150.0f) < 5.0) {
-			Z_DEPTH += (f/150.0f);
+		if(currentCardZDepth + (f/150.0f) > 1.0f && currentCardZDepth + (f/150.0f) < 5.0) {
+			currentCardZDepth += (f/150.0f);
 		}
 	}
 	
@@ -733,10 +703,10 @@ public class ContactCardsRenderer implements GLSurfaceView.Renderer{
 			RenderState.renderSolid = !RenderState.renderSolid;
 			break;
 		case SwipeActivity.ROTATE_TO_FRONT:
-			if(ROTATION_TO_FRONT == 360.0f) {
-				ROTATION_TO_FRONT = 0.0f;
+			if(currentRotatationToFrontAngle == 360.0f) {
+				currentRotatationToFrontAngle = 0.0f;
 			} else {
-				ROTATION_TO_FRONT = 360.0f;
+				currentRotatationToFrontAngle = 360.0f;
 			}
 			break;
 		}
