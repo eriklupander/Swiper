@@ -6,7 +6,6 @@ import java.nio.ByteOrder;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
-import android.app.Activity;
 import android.content.Context;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
@@ -17,9 +16,7 @@ import android.view.animation.AnticipateOvershootInterpolator;
 import android.view.animation.OvershootInterpolator;
 
 import com.squeed.swiper.fw.FrameBufferFactory;
-import com.squeed.swiper.fw.NumberRenderer;
 import com.squeed.swiper.fw.ObjectRenderer;
-import com.squeed.swiper.fw.TextRenderer;
 import com.squeed.swiper.fw.Transition;
 import com.squeed.swiper.helper.TextureLoader;
 import com.squeed.swiper.shader.Shaders;
@@ -29,6 +26,7 @@ import com.squeed.swiper.shapes.ContactCard;
 import com.squeed.swiper.shapes.IconQuad;
 import com.squeed.swiper.shapes.NumberQuad;
 import com.squeed.swiper.shapes.RadialMenu;
+import com.squeed.swiper.util.frustum.Frustum;
 
 /**
  * Renders the scene, this is the "main" loop of the 3D-rendering. Note the heavy usage of statics,
@@ -206,7 +204,7 @@ public class ContactCardsRenderer implements GLSurfaceView.Renderer{
 	
 			frames++;
 			if(frames == 150) {
-				fps = 150.0f / ((System.currentTimeMillis() - startTime)/1000.0f);
+				fps = 150.0f / ((System.currentTimeMillis() - startTime) / 1000.0f);
 								
 				//Log.i("FPS", "150 frames took : " + (System.currentTimeMillis() - startTime) + " ms to render, which means " + fps + " fps");
 				frames = 0;
@@ -265,6 +263,7 @@ public class ContactCardsRenderer implements GLSurfaceView.Renderer{
 		
 		
 		private float camZ = 6.0f;
+		private Frustum frustum;
 		
 		private void renderCardTransition() {
 			if(selectedIndex == -1) 
@@ -374,6 +373,7 @@ public class ContactCardsRenderer implements GLSurfaceView.Renderer{
 			// Get the base "scroll" position. Note the interpolation.
 			calcXTranslation();
 			
+			int skippedCards = 0;
 					
 			for (int i = 0; i < contactCards.length; i++) {
 				if( contactCards[i] == null) {
@@ -392,9 +392,13 @@ public class ContactCardsRenderer implements GLSurfaceView.Renderer{
 				cc.yRot = cc.x * 9.0f;
 				
 				// The most crude occlusion culling ever...
-				if(cc.x < -7 || cc.x > 7) {					
+//				if(cc.x < -7 || cc.x > 7) {					
+//					continue;
+//				}	
+				if(!frustum.cubeInFrustum(cc.x, cc.y, cc.z, 1.0f)) {
+					skippedCards++;
 					continue;
-				}				
+				}
 					
 				// If the "solid color render" test mode is active, draw solid and go to next card
 				if(RenderState.renderSolid) {					
@@ -417,7 +421,8 @@ public class ContactCardsRenderer implements GLSurfaceView.Renderer{
 						renderer.renderReflection(cc, Shaders.pulseReflectionShader, new int[]{Shaders.pulseReflectionShader.time, Shaders.pulseReflectionShader.amount}, new float[]{time, amount}, 2.1f, -1.0f);
 					}
 				}
-			}			
+			}
+			//Log.i(TAG, "Frustum culled " + skippedCards + " cards");
 		}
 
 
@@ -436,7 +441,11 @@ public class ContactCardsRenderer implements GLSurfaceView.Renderer{
 		private void setViewPort(int width, int height) {
 			GLES20.glViewport(0, 0, width, height);
 		    float ratio = (float) width / height;
-		    Matrix.frustumM(mProjectionMatrix, 0, -ratio, ratio, -1, 1, fNear, fFar);	    
+		    Matrix.frustumM(mProjectionMatrix, 0, -ratio, ratio, -1, 1, fNear, fFar);
+		    
+		    // Calculate clipping planes (e.g. frustum)
+ 			frustum = new Frustum();
+ 			frustum.calculateFrustum(mProjectionMatrix, mViewMatrix);
 		}
 		
 		
@@ -477,6 +486,8 @@ public class ContactCardsRenderer implements GLSurfaceView.Renderer{
 
 			// Setup camera
 			Matrix.setLookAtM(mViewMatrix, 0, 0, 0, 6.0f, 0f, 0f, 0f, 0f, 1.0f, 0.0f);
+			
+			
 		}
 
 
